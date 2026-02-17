@@ -12,109 +12,136 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-/* ===== ESTILOS PREMIUM ===== */
+/* ===== ESTILOS PARA PANTALLA ÚNICA (NO SCROLL) ===== */
+* { box-sizing: border-box; }
+
 body {
     margin: 0;
+    padding: 0;
     font-family: 'Poppins', sans-serif;
     color: white;
-    /* RUTA DE TU IMAGEN DESCARGADA */
     background-image: url("/IMAGEN/Pepos.jpg"); 
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-color: #111;
+    height: 100vh; /* Altura estricta */
+    overflow: hidden; /* Prohíbe el scroll en la página entera */
 }
 
-/* Efecto Vidrio Esmerilado (Glassmorphism) */
+/* Efecto Vidrio Esmerilado */
 .glass-effect {
-    background: rgba(15, 15, 15, 0.7);
+    background: rgba(15, 15, 15, 0.75);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(212, 175, 55, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
 }
 
+/* PANTALLA LOGIN */
 #loginOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
     display: flex; justify-content: center; align-items: center;
     z-index: 9999; flex-direction: column;
 }
-
-.loginBox {
-    padding: 40px; border-radius: 20px; text-align: center;
-}
-.loginBox h2 { color: #FFD700; margin-bottom: 25px; font-weight: 800; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+.loginBox { padding: 40px; text-align: center; }
+.loginBox h2 { color: #FFD700; margin-bottom: 25px; font-weight: 800; letter-spacing: 2px; }
 .loginBox input { 
     padding: 15px; font-size: 18px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.3); 
     text-align: center; margin-bottom: 20px; background: rgba(255,255,255,0.1); color: white;
     font-family: 'Poppins', sans-serif; outline: none; transition: all 0.3s;
 }
-.loginBox input:focus { border-color: #FFD700; box-shadow: 0 0 15px rgba(255,215,0,0.2); }
 
+/* CONTENEDOR PRINCIPAL FLEXIBLE */
 .contenedor {
-    text-align: center; min-height: 100vh; padding: 30px 20px; display: none; 
+    display: none; 
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh; 
+    padding: 1.5vh 1.5vw; 
+    gap: 1vh;
 }
 
-.titulo { color: #FFD700; font-size: 45px; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.8); margin-bottom: 5px; }
-
+/* CABECERA */
+.header-box { padding: 1vh; text-align: center; }
+.titulo { color: #FFD700; font-size: 4vh; font-weight: 800; text-shadow: 0 3px 10px rgba(0,0,0,0.8); margin: 0; }
 .mesaEditable {
-    font-size: 28px; color: #fff; background: transparent; border: none;
-    border-bottom: 2px dashed #D4AF37; text-align: center; width: 80px;
+    font-size: 2.5vh; color: #fff; background: transparent; border: none;
+    border-bottom: 2px dashed #D4AF37; text-align: center; width: 60px;
     outline: none; font-family: 'Poppins', sans-serif; font-weight: 600;
-    transition: all 0.3s;
 }
-.mesaEditable:focus { border-bottom-style: solid; color: #FFD700; }
 
+/* ZONA MARCADOR (Toma la mayor parte del espacio) */
 .marcador {
-    display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; margin-top: 30px;
+    flex: 1; /* Se estira para ocupar el centro */
+    display: flex; justify-content: center; align-items: center; gap: 3vw;
 }
-
 .jugador {
-    padding: 30px; border-radius: 20px; min-width: 250px;
-    transition: transform 0.3s;
+    padding: 2vh 2vw; min-width: 25vw;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.jugador:hover { transform: translateY(-5px); }
-
 .jugador input {
-    font-size: 24px; text-align: center; padding: 10px; border: none; border-bottom: 2px solid transparent;
-    background: transparent; color: white; font-weight: 600; margin-bottom: 15px;
-    font-family: 'Poppins', sans-serif; transition: all 0.3s; width: 90%;
+    font-size: 3vh; text-align: center; padding: 5px; border: none; border-bottom: 2px solid transparent;
+    background: transparent; color: white; font-weight: 600; margin-bottom: 0;
+    font-family: 'Poppins', sans-serif; width: 100%; outline: none;
 }
-.jugador input:focus { border-bottom: 2px solid #D4AF37; outline: none; }
-
-/* Animación de los puntos al cambiar */
 .puntos {
-    font-size: 90px; color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    margin: 10px 0 20px 0; display: inline-block;
+    font-size: 15vh; color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    margin: 1vh 0; display: inline-block; line-height: 1;
 }
-@keyframes popEffect {
-    0% { transform: scale(1); text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-    50% { transform: scale(1.3); color: #FFF; text-shadow: 0 0 30px #FFD700; }
-    100% { transform: scale(1); text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-}
-.animar-punto { animation: popEffect 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-/* Botones con efectos suaves */
+/* ANIMACIÓN PUNTOS */
+@keyframes popEffect {
+    0% { transform: scale(1); } 50% { transform: scale(1.2); color: #FFF; text-shadow: 0 0 30px #FFD700; } 100% { transform: scale(1); }
+}
+.animar-punto { animation: popEffect 0.3s ease-out; }
+
+/* BOTONES */
 button {
-    font-size: 16px; padding: 12px 25px; margin: 5px; border: none; border-radius: 10px;
+    font-size: 1.8vh; padding: 1vh 2vw; margin: 3px; border: none; border-radius: 8px;
     cursor: pointer; background: linear-gradient(135deg, #FFDF00 0%, #D4AF37 100%);
     color: #111; font-weight: 800; font-family: 'Poppins', sans-serif;
-    text-transform: uppercase; letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.2s ease;
+    text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s;
 }
-button:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4); filter: brightness(1.1); }
-button:active { transform: translateY(1px); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+button:active { transform: translateY(1px); }
 button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
-button.restar:hover { background: rgba(255,255,255,0.2); box-shadow: 0 6px 20px rgba(255,255,255,0.1); }
 
-.vs { font-size: 35px; font-weight: 800; color: rgba(255,255,255,0.5); text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.vs { font-size: 4vh; font-weight: 800; color: rgba(255,255,255,0.5); }
 
-.panel, .seccion { margin-top: 40px; padding: 20px; border-radius: 20px; }
-.panel input { padding: 8px; border-radius: 8px; border: none; text-align: center; font-size: 18px; width: 60px; font-weight: bold;}
+/* ZONA INFERIOR (Ajustada en 4 columnas para que no ocupe a lo alto) */
+.bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 1vw;
+    height: 25vh; /* Altura máxima fija */
+}
 
-#contenedorQR { background: white; padding: 15px; display: inline-block; margin-top: 10px; border-radius: 12px; }
+.bottom-box {
+    flex: 1; 
+    padding: 1.5vh 1vw; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    overflow-y: auto; /* Scroll interno solo si es necesario */
+}
+/* Ocultar barra de scroll interna para mantenerlo limpio */
+.bottom-box::-webkit-scrollbar { width: 5px; }
+.bottom-box::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.5); border-radius: 5px; }
 
+.bottom-box h3 { color: #FFD700; margin: 0 0 1vh 0; font-size: 1.8vh; text-transform: uppercase; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 5px; width: 100%; text-align: center;}
+
+/* Puntos objetivo */
+.config-box input { padding: 5px; border-radius: 5px; border: none; text-align: center; font-size: 2vh; width: 60px; font-weight: bold; margin: 5px 0 10px 0;}
+
+/* QR Code */
+#contenedorQR { background: white; padding: 10px; border-radius: 10px; }
+#contenedorQR img { width: 10vh; height: 10vh; }
+
+/* CELEBRACIÓN */
 .celebracion {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); display: none;
@@ -123,7 +150,7 @@ button.restar:hover { background: rgba(255,255,255,0.2); box-shadow: 0 6px 20px 
 .celebracion.activa { display: flex; animation: fadeIntro 0.5s ease; }
 @keyframes fadeIntro { from { opacity: 0; } to { opacity: 1; } }
 @keyframes reboteTexto { 0% { transform: scale(1); } 50% { transform: scale(1.1); text-shadow: 0 0 40px #FFD700; } 100% { transform: scale(1); } }
-#textoGanador { font-size: 60px; font-weight: 800; color: #FFD700; text-align: center; text-shadow: 0 0 20px gold; animation: reboteTexto 1.5s infinite alternate ease-in-out; margin-bottom: 30px;}
+#textoGanador { font-size: 8vh; font-weight: 800; color: #FFD700; text-align: center; text-shadow: 0 0 20px gold; animation: reboteTexto 1.5s infinite alternate ease-in-out; margin-bottom: 3vh;}
 
 </style>
 </head>
@@ -135,65 +162,71 @@ button.restar:hover { background: rgba(255,255,255,0.2); box-shadow: 0 6px 20px 
         <h2>BILLARES PEPO</h2>
         <input type="password" id="passInput" placeholder="Contraseña secreta...">
         <br>
-        <button onclick="validar()">ENTRAR AL TORNEO</button>
+        <button onclick="validar()" style="padding: 15px 30px; font-size: 16px;">ENTRAR AL TORNEO</button>
     </div>
 </div>
 
 <div id="app" class="contenedor">
-    <div class="glass-effect" style="padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+    <div class="header-box glass-effect">
         <h1 class="titulo">BILLARES PEPO</h1>
-        <h2 style="font-weight: 400;">MESA <input id="mesaInput" class="mesaEditable"></h2>
+        <h2 style="font-weight: 400; margin: 5px 0 0 0; font-size: 2vh;">MESA <input id="mesaInput" class="mesaEditable"></h2>
     </div>
 
     <div class="marcador">
         <div class="jugador glass-effect">
             <input id="nombreA" value="Jugador 1">
-            <div class="puntos" id="puntosA">0</div><br>
-            <button onclick="sumarA()">+ PUNTOS</button>
-            <button class="restar" onclick="restarA()">- Quitar</button>
+            <div class="puntos" id="puntosA">0</div>
+            <div style="display:flex; gap:5px; width: 100%;">
+                <button onclick="sumarA()" style="flex:1;">+ PUNTO</button>
+                <button class="restar" onclick="restarA()" style="flex:1;">- Quitar</button>
+            </div>
         </div>
         
         <div class="vs">VS</div>
         
         <div class="jugador glass-effect">
             <input id="nombreB" value="Jugador 2">
-            <div class="puntos" id="puntosB">0</div><br>
-            <button onclick="sumarB()">+ PUNTOS</button>
-            <button class="restar" onclick="restarB()">- Quitar</button>
+            <div class="puntos" id="puntosB">0</div>
+            <div style="display:flex; gap:5px; width: 100%;">
+                <button onclick="sumarB()" style="flex:1;">+ PUNTO</button>
+                <button class="restar" onclick="restarB()" style="flex:1;">- Quitar</button>
+            </div>
         </div>
     </div>
 
-    <div class="panel glass-effect">
-        <span style="font-size: 20px; font-weight: 600; margin-right: 15px;">Puntos para ganar:</span>
-        <input id="objetivo" type="number" value="40">
-        <button onclick="resetear()" style="margin-left: 20px; background: #e74c3c; color: white;">Reiniciar Partida</button>
-    </div>
-
-    <div class="seccion glass-effect" style="display: flex; flex-direction: column; align-items: center;">
-        <h3 style="color: #FFD700;">📱 Modo Remoto</h3>
-        <p style="font-size: 14px; opacity: 0.8;">Escanea con tu celular para controlar el marcador de esta mesa a distancia.</p>
-        <div id="contenedorQR"></div>
-    </div>
-
-    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-        <div class="seccion glass-effect" style="flex: 1; min-width: 300px;">
-            <h3 style="color: #FFD700; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 10px;">🏆 Top Ranking</h3>
-            <div id="ranking" style="text-align: left; padding-left: 20px; line-height: 1.8;"></div>
+    <div class="bottom-row">
+        <div class="bottom-box glass-effect config-box">
+            <h3>⚙️ Opciones</h3>
+            <span style="font-size: 1.5vh; opacity: 0.8;">Puntos para ganar:</span>
+            <input id="objetivo" type="number" value="40">
+            <button onclick="resetear()" style="background: #e74c3c; color: white; width: 100%; margin-top: auto;">Reiniciar Partida</button>
         </div>
-        <div class="seccion glass-effect" style="flex: 1; min-width: 300px;">
-            <h3 style="color: #FFD700; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 10px;">📈 Estadísticas Jugadores</h3>
-            <div id="estadisticas" style="text-align: left; padding-left: 20px; line-height: 1.8;"></div>
+
+        <div class="bottom-box glass-effect">
+            <h3>📱 Remoto</h3>
+            <div id="contenedorQR"></div>
+            <p style="font-size: 1.2vh; opacity: 0.8; text-align: center; margin: 5px 0 0 0;">Escanea para controlar</p>
+        </div>
+
+        <div class="bottom-box glass-effect">
+            <h3>🏆 Top Ranking</h3>
+            <div id="ranking" style="text-align: left; width: 100%; font-size: 1.6vh; line-height: 1.6;"></div>
+        </div>
+
+        <div class="bottom-box glass-effect">
+            <h3>📈 Estadísticas</h3>
+            <div id="estadisticas" style="text-align: left; width: 100%; font-size: 1.6vh; line-height: 1.6;"></div>
         </div>
     </div>
 </div>
 
 <div class="celebracion" id="celebracion">
     <div id="textoGanador"></div>
-    <button onclick="nuevaPartida()" style="font-size: 24px; padding: 15px 40px; border-radius: 50px;">NUEVA PARTIDA</button>
+    <button onclick="nuevaPartida()" style="font-size: 3vh; padding: 2vh 4vw; border-radius: 50px;">NUEVA PARTIDA</button>
 </div>
 
 <script>
-// CONFIGURACIÓN FIREBASE CON TU URL OFICIAL
+// CONFIGURACIÓN FIREBASE 
 const firebaseConfig = { databaseURL: "https://billares-pepo-default-rtdb.firebaseio.com/" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -206,7 +239,7 @@ let estadisticas = {};
 function validar() {
     if(document.getElementById('passInput').value === 'billar2025') {
         document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
+        document.getElementById('app').style.display = 'flex'; // Cambiado a flex para la estructura responsive
         setTimeout(inicializarQR, 300);
         
         db.ref('datos_jugadores').on('value', (snapshot) => {
@@ -221,7 +254,6 @@ function validar() {
         db.ref('marcador').on('value', (snapshot) => {
             const data = snapshot.val();
             if(data) {
-                // Animar si cambiaron los puntos
                 if(data.pA !== puntosA) animarNumero("puntosA");
                 if(data.pB !== puntosB) animarNumero("puntosB");
                 
@@ -234,20 +266,17 @@ function validar() {
     } else { alert("Contraseña incorrecta"); }
 }
 
-function enviarPuntos() {
-    db.ref('marcador').set({ pA: puntosA, pB: puntosB });
-}
+function enviarPuntos() { db.ref('marcador').set({ pA: puntosA, pB: puntosB }); }
 
 function actualizarDOM() {
     document.getElementById("puntosA").textContent = puntosA;
     document.getElementById("puntosB").textContent = puntosB;
 }
 
-// Función para el efecto Pop
 function animarNumero(idElemento) {
     const el = document.getElementById(idElemento);
     el.classList.remove("animar-punto");
-    void el.offsetWidth; // Reinicia la animación
+    void el.offsetWidth; 
     el.classList.add("animar-punto");
 }
 
@@ -274,7 +303,7 @@ function registrarVictoria(ganador, perdedor, pG, pP) {
     
     db.ref('datos_jugadores').set({ ranking: ranking, estadisticas: estadisticas });
     
-    document.getElementById("textoGanador").innerHTML = "¡TENEMOS UN CAMPEÓN!<br><span style='color:white; font-size: 80px;'>" + ganador + "</span>";
+    document.getElementById("textoGanador").innerHTML = "¡TENEMOS UN CAMPEÓN!<br><span style='color:white;'>" + ganador + "</span>";
     document.getElementById("celebracion").classList.add("activa");
     lanzarConfetiProfesional();
 }
@@ -283,7 +312,7 @@ function renderDatos() {
     let r = "";
     Object.entries(ranking).sort((a,b)=>b[1]-a[1]).forEach(([n,v],i)=> {
         let medalla = i===0 ? "🥇" : i===1 ? "🥈" : i===2 ? "🥉" : "🔸";
-        r += `<b>${medalla} ${n}</b>: ${v} victorias<br>`;
+        r += `<b>${medalla} ${n}</b>: ${v} vict.<br>`;
     });
     document.getElementById("ranking").innerHTML = r;
     
@@ -291,7 +320,7 @@ function renderDatos() {
     for(let j in estadisticas) {
         let s = estadisticas[j];
         let prom = s.jugadas > 0 ? (s.puntos/s.jugadas).toFixed(1) : 0;
-        e += `<b>${j}</b> ➔ Partidas: ${s.jugadas} | Eficiencia: ${prom} pts/partida<br>`;
+        e += `<b>${j}</b>: ${s.jugadas}P | Prom: ${prom}<br>`;
     }
     document.getElementById("estadisticas").innerHTML = e;
 }
@@ -306,27 +335,28 @@ function resetear() { puntosA = 0; puntosB = 0; enviarPuntos(); }
 function inicializarQR() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('modo') === 'remoto') {
+        // INTERFAZ REMOTA TAMBIÉN SIN SCROLL
         document.body.style.backgroundImage = "none";
         document.body.style.backgroundColor = "#111";
-        document.getElementById('app').style.display = 'block';
+        document.getElementById('app').style.display = 'flex';
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('app').innerHTML = `
-            <div style="padding:20px; max-width: 500px; margin: auto;">
-                <h1 class="titulo" style="font-size: 35px; text-align: center;">MANDO A DISTANCIA</h1>
-                <div class="glass-effect" style="padding: 20px; border-radius: 20px; margin-bottom: 20px;">
-                    <h2 style="margin:0 0 15px 0;">JUGADOR 1</h2>
-                    <button onclick="remote(1,0)" style="width:100%; height:100px; font-size:50px; border-radius:15px;">+</button>
-                    <button class="restar" onclick="remote(-1,0)" style="width:100%; height:50px; margin-top:10px;">- Quitar Punto</button>
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; max-width: 500px; margin: auto; width: 100%;">
+                <h1 class="titulo" style="font-size: 4vh; text-align: center;">MANDO A DISTANCIA</h1>
+                <div class="glass-effect" style="padding: 2vh; text-align: center;">
+                    <h2 style="margin:0 0 1vh 0; font-size:2.5vh;">JUGADOR 1</h2>
+                    <button onclick="remote(1,0)" style="width:100%; height:15vh; font-size:5vh; border-radius:15px;">+</button>
+                    <button class="restar" onclick="remote(-1,0)" style="width:100%; height:8vh; font-size:2vh; margin-top:1vh;">- Quitar Punto</button>
                 </div>
-                <div class="glass-effect" style="padding: 20px; border-radius: 20px;">
-                    <h2 style="margin:0 0 15px 0;">JUGADOR 2</h2>
-                    <button onclick="remote(0,1)" style="width:100%; height:100px; font-size:50px; border-radius:15px;">+</button>
-                    <button class="restar" onclick="remote(0,-1)" style="width:100%; height:50px; margin-top:10px;">- Quitar Punto</button>
+                <div class="glass-effect" style="padding: 2vh; text-align: center;">
+                    <h2 style="margin:0 0 1vh 0; font-size:2.5vh;">JUGADOR 2</h2>
+                    <button onclick="remote(0,1)" style="width:100%; height:15vh; font-size:5vh; border-radius:15px;">+</button>
+                    <button class="restar" onclick="remote(0,-1)" style="width:100%; height:8vh; font-size:2vh; margin-top:1vh;">- Quitar Punto</button>
                 </div>
             </div>`;
         
         window.remote = (a, b) => {
-            if(window.navigator.vibrate) window.navigator.vibrate(50); // Vibración háptica en celulares
+            if(window.navigator.vibrate) window.navigator.vibrate(50);
             db.ref('marcador').once('value', s => {
                 const d = s.val() || {pA:0, pB:0};
                 db.ref('marcador').set({ pA: Math.max(0, d.pA + a), pB: Math.max(0, d.pB + b) });
@@ -335,18 +365,16 @@ function inicializarQR() {
     } else {
         const qrDiv = document.getElementById("contenedorQR");
         qrDiv.innerHTML = "";
-        new QRCode(qrDiv, { text: window.location.href.split('?')[0] + "?modo=remoto", width: 180, height: 180 });
+        // QR un poco más pequeño para asegurar que quepa
+        new QRCode(qrDiv, { text: window.location.href.split('?')[0] + "?modo=remoto", width: 100, height: 100 });
     }
 }
 
-// CONFETI PROFESIONAL
 function lanzarConfetiProfesional() {
     var duration = 4000;
     var animationEnd = Date.now() + duration;
     var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
-
     function randomInRange(min, max) { return Math.random() * (max - min) + min; }
-
     var interval = setInterval(function() {
         var timeLeft = animationEnd - Date.now();
         if (timeLeft <= 0) return clearInterval(interval);
