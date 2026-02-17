@@ -64,7 +64,6 @@ body {
     font-family: 'Poppins', sans-serif; width: 100%; outline: none;
 }
 
-/* Espacio asegurado para los puntos */
 .puntos {
     font-size: 12vh; color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
     margin: 1vh 0; display: inline-block; line-height: 1; min-height: 12vh; min-width: 10vw; text-align: center;
@@ -194,6 +193,22 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
 
 <script>
 // ==========================================
+// 🛡️ NIVEL 1: PROTECCIÓN ANTI-CURIOSOS
+// ==========================================
+// Bloquea clic derecho
+document.addEventListener('contextmenu', event => event.preventDefault()); 
+
+// Bloquea atajos de teclado para ver el código
+document.onkeydown = function(e) {
+    if(e.keyCode == 123) return false; // Bloquea F12
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Bloquea Ctrl+Shift+I
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Bloquea Ctrl+Shift+C
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; // Bloquea Ctrl+Shift+J
+    if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Bloquea Ctrl+U (Ver código fuente)
+    if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false; // Bloquea Ctrl+S (Guardar web)
+}
+
+// ==========================================
 // CONFIGURACIÓN FIREBASE
 // ==========================================
 const firebaseConfig = { databaseURL: "https://billares-pepo-default-rtdb.firebaseio.com/" };
@@ -204,10 +219,7 @@ const db = firebase.database();
 // -------------------------------------------------------------
 // 🔒 VIGÍA INHACKEABLE (HORA SATELITAL DE GOOGLE + ZONA UTC)
 // -------------------------------------------------------------
-// Formato: "AÑO-MES-DIAThora:minuto:segundoZ"
-// IMPORTANTE: La "Z" al final significa "Hora Universal" (UTC). 
-// Con la "Z", el código ignora totalmente en qué país, mes o zona horaria esté la computadora.
-const FECHA_CADUCIDAD = new Date("2026-02-16T21:10:00Z").getTime(); 
+const FECHA_CADUCIDAD = new Date("2026-02-16T23:59:59Z").getTime(); 
 
 function ejecutarBloqueoAbsoluto() {
     document.body.innerHTML = `
@@ -221,20 +233,13 @@ function ejecutarBloqueoAbsoluto() {
     if(typeof db !== 'undefined') db.goOffline(); // Desconecta la base de datos de inmediato
 }
 
-// 1. Revisión rápida (por si acaso)
-if (Date.now() > FECHA_CADUCIDAD) {
-    ejecutarBloqueoAbsoluto();
-}
+if (Date.now() > FECHA_CADUCIDAD) { ejecutarBloqueoAbsoluto(); }
 
-// 2. Revisión Satelital Inhackeable
-// Analiza la diferencia entre la hora falsa de la laptop y la hora atómica real.
 db.ref(".info/serverTimeOffset").on("value", (snap) => {
     const diferenciaSatelite = snap.val() || 0;
     const horaMundialExacta = Date.now() + diferenciaSatelite; 
     
-    if (horaMundialExacta > FECHA_CADUCIDAD) {
-        ejecutarBloqueoAbsoluto();
-    }
+    if (horaMundialExacta > FECHA_CADUCIDAD) { ejecutarBloqueoAbsoluto(); }
 });
 // -------------------------------------------------------------
 
@@ -270,7 +275,6 @@ const isRemoto = urlParams.get('modo') === 'remoto';
 const mesaRemotaUrl = urlParams.get('mesa') || "1";
 
 window.onload = () => {
-    // Si la función de bloqueo ya destruyó el body, detenemos el código.
     if(document.body.innerHTML.includes("EXPIRADA")) return;
 
     if(isRemoto) {
@@ -472,4 +476,3 @@ function lanzarConfetiProfesional() {
 </script>
 </body>
 </html>
-
