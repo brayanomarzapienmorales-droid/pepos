@@ -37,7 +37,8 @@ body{
 margin:0;
 font-family:Arial, Helvetica, sans-serif;
 color:white;
-background-image:url("/IMAGEN/Pepos.jpg");
+/* CAMBIO AQUÍ: Nueva URL de la imagen de fondo */
+background-image:url("https://i.imgur.com/y6b8x0a.jpeg");
 background-size:cover;
 background-position:center;
 background-attachment:fixed;
@@ -203,7 +204,7 @@ animation:aparecer 0.6s ease, brillo 2s infinite alternate;
 </div>
 
 <script>
-// CONFIGURACIÓN FIREBASE CON TU URL
+// CONFIGURACIÓN FIREBASE
 const firebaseConfig = { databaseURL: "https://billares-pepo-default-rtdb.firebaseio.com/" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
