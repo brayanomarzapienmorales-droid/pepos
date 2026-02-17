@@ -63,9 +63,12 @@ body {
     background: transparent; color: white; font-weight: 600; margin-bottom: 0;
     font-family: 'Poppins', sans-serif; width: 100%; outline: none;
 }
+
+/* === CORRECCIÓN VISUAL === */
+/* Se añadió min-height para que el espacio nunca desaparezca aunque no haya número */
 .puntos {
     font-size: 12vh; color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    margin: 1vh 0; display: inline-block; line-height: 1;
+    margin: 1vh 0; display: inline-block; line-height: 1; min-height: 12vh; min-width: 10vw; text-align: center;
 }
 
 @keyframes popEffect { 0% { transform: scale(1); } 50% { transform: scale(1.2); color: #FFF; text-shadow: 0 0 30px #FFD700; } 100% { transform: scale(1); } }
@@ -105,7 +108,6 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
 .btn-remoto { width:100%; height:12vh; font-size:5vh; border-radius:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; line-height:1; }
 .btn-remoto-restar { width:100%; height:7vh; font-size:2vh; margin-top:1vh; }
 
-/* Nuevo campo de texto (Input) para el celular */
 .nombre-input-remoto {
     width: 100%; font-size: 2.5vh; text-align: center; padding: 1vh;
     background: rgba(0,0,0,0.5); color: #FFD700; border: 1px solid rgba(212, 175, 55, 0.5);
@@ -218,7 +220,7 @@ function updateTimerDisplay() {
 }
 
 // ==========================================
-// INICIALIZACIÓN Y LÓGICA DE RUTEO (TV vs CELULAR)
+// INICIALIZACIÓN Y LÓGICA DE RUTEO
 // ==========================================
 const urlParams = new URLSearchParams(window.location.search);
 const isRemoto = urlParams.get('modo') === 'remoto';
@@ -248,7 +250,7 @@ function iniciarSistema() {
 }
 
 // ==========================================
-// LÓGICA DE TELEVISIÓN (PANTALLA PRINCIPAL)
+// LÓGICA DE TELEVISIÓN
 // ==========================================
 function cargarEstadisticasGlobales() {
     db.ref('datos_jugadores').on('value', (snapshot) => {
@@ -265,12 +267,18 @@ function cambiarMesa() {
     dbRefMesa = db.ref('mesas/mesa_' + mesaActual);
     
     dbRefMesa.on('value', (snapshot) => {
-        const data = snapshot.val() || { pA: 0, pB: 0, nA: "Jugador 1", nB: "Jugador 2", obj: 40 };
+        const data = snapshot.val() || {};
         
-        if(data.pA !== puntosA) animarNumero("puntosA");
-        if(data.pB !== puntosB) animarNumero("puntosB");
+        // === CORRECCIÓN LÓGICA: ESCUDO ANTI "NaN" ===
+        // Obliga a que los puntos sean números, si están en blanco los pone en 0.
+        const nuevoPA = parseInt(data.pA) || 0;
+        const nuevoPB = parseInt(data.pB) || 0;
         
-        puntosA = data.pA; puntosB = data.pB;
+        if(nuevoPA !== puntosA) animarNumero("puntosA");
+        if(nuevoPB !== puntosB) animarNumero("puntosB");
+        
+        puntosA = nuevoPA; 
+        puntosB = nuevoPB;
         
         if(document.activeElement !== document.getElementById('nombreA')) document.getElementById('nombreA').value = data.nA || "Jugador 1";
         if(document.activeElement !== document.getElementById('nombreB')) document.getElementById('nombreB').value = data.nB || "Jugador 2";
@@ -289,10 +297,11 @@ function cambiarMesa() {
 function enviarEstado() {
     if(!dbRefMesa) return;
     dbRefMesa.set({
-        pA: puntosA, pB: puntosB,
+        pA: parseInt(puntosA) || 0, 
+        pB: parseInt(puntosB) || 0,
         nA: document.getElementById('nombreA').value,
         nB: document.getElementById('nombreB').value,
-        obj: document.getElementById('objetivo').value
+        obj: parseInt(document.getElementById('objetivo').value) || 40
     });
 }
 
@@ -353,7 +362,6 @@ function resetear() { puntosA = 0; puntosB = 0; enviarEstado(); resetTimer(); }
 function iniciarControlRemoto(mesaControlada) {
     document.getElementById('app').style.display = 'flex';
     
-    // UI del celular: Ahora incluye Inputs en lugar de textos fijos
     document.getElementById('app').innerHTML = `
         <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; max-width: 500px; margin: auto; width: 100%;">
             <div class="header-box glass-effect">
@@ -374,33 +382,34 @@ function iniciarControlRemoto(mesaControlada) {
             </div>
         </div>`;
     
-    // Escuchar cambios de Firebase (por si la TV lo cambia, el cel también se actualiza)
     db.ref('mesas/mesa_' + mesaControlada).on('value', snap => {
         const data = snap.val();
         if(data) {
             const inputA = document.getElementById('remotoNombreA');
             const inputB = document.getElementById('remotoNombreB');
-            // Solo actualiza si NO estamos escribiendo en el campo en ese momento
             if(inputA && document.activeElement !== inputA) inputA.value = data.nA || "Jugador 1";
             if(inputB && document.activeElement !== inputB) inputB.value = data.nB || "Jugador 2";
         }
     });
 
-    // Enviar cambio de nombre a la base de datos
     window.cambiarNombreCelular = (clave, nuevoNombre) => {
         db.ref('mesas/mesa_' + mesaControlada).update({
             [clave]: nuevoNombre
         });
     };
 
-    // Botones de suma y resta
     window.enviarMando = (sumaA, sumaB) => {
         if(window.navigator.vibrate) window.navigator.vibrate(50);
         db.ref('mesas/mesa_' + mesaControlada).once('value', s => {
-            const d = s.val() || {pA:0, pB:0};
+            const d = s.val() || {};
+            // === CORRECCIÓN LÓGICA EN EL MANDO ===
+            // También se asegura de que sea un número antes de intentar sumarle
+            const currentA = parseInt(d.pA) || 0;
+            const currentB = parseInt(d.pB) || 0;
+
             db.ref('mesas/mesa_' + mesaControlada).update({ 
-                pA: Math.max(0, d.pA + sumaA), 
-                pB: Math.max(0, d.pB + sumaB) 
+                pA: Math.max(0, currentA + sumaA), 
+                pB: Math.max(0, currentB + sumaB) 
             });
         });
     };
