@@ -3,119 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marcador Billar - Pepos</title>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Billares Pepo - Marcador</title>
+    
+    <script id="qrScript" src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        /* ===== ESTILO INICIO DE SESIÓN ===== */
-        #loginOverlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0a2e1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            flex-direction: column;
-        }
-        .loginBox {
-            background: rgba(0,0,0,0.8);
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #D4AF37;
-            text-align: center;
-        }
-        .loginBox h2 { color: #D4AF37; margin-bottom: 20px; font-family: sans-serif; }
-        .loginBox input { 
-            padding: 10px; font-size: 18px; border-radius: 5px; border: none; text-align: center; margin-bottom: 15px;
-        }
-
-        /* ===== ESTILO GENERAL ===== */
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            color: white;
-            background-color: #1a1a1a; /* Color de respaldo */
-            background-image: url("/IMAGEN/Pepos.jpg");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-
-        .contenedor {
-            text-align: center;
-            background: rgba(0,0,0,0.8);
-            min-height: 100vh;
-            padding: 20px;
-            display: none; /* Se activa con el login */
-        }
-
-        .titulo { color: #D4AF37; font-size: 40px; margin-top: 10px; }
-        .mesaEditable {
-            font-size: 28px; color: #FFD700; background: transparent;
-            border: none; border-bottom: 2px solid #D4AF37;
-            text-align: center; width: 120px; outline: none;
-        }
-
-        .marcador {
-            display: flex; justify-content: center; align-items: center;
-            gap: 40px; flex-wrap: wrap; margin-top: 20px;
-        }
-
-        .jugador { background: rgba(0,0,0,0.6); padding: 20px; border-radius: 12px; min-width: 200px; }
-        .jugador input { font-size: 20px; text-align: center; padding: 5px; border: none; border-radius: 6px; margin-bottom: 10px; }
-        .puntos { font-size: 80px; color: #D4AF37; margin: 10px 0; }
-
-        button {
-            font-size: 18px; padding: 10px 20px; margin: 5px;
-            border: none; border-radius: 8px; cursor: pointer;
-            background: #D4AF37; color: black; font-weight: bold;
-        }
-
-        .vs { font-size: 30px; }
-        .panel { margin-top: 20px; }
-        .seccion { margin-top: 30px; border-top: 1px solid rgba(212, 175, 55, 0.3); padding-top: 20px; }
-
-        #contenedorQR {
-            background: white;
-            padding: 10px;
-            display: inline-block;
-            margin-top: 10px;
-            border-radius: 8px;
-            min-width: 128px;
-            min-height: 128px;
-        }
-
-        /* CELEBRACIÓN */
-        .celebracion {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none;
-            justify-content: center; align-items: center;
-            flex-direction: column; z-index: 1000;
-        }
-        .celebracion.activa { display: flex; }
-        #textoGanador { font-size: 48px; color: #FFD700; text-shadow: 0 0 20px gold; }
+        /* Mantenemos tus estilos */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a2e1a; display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
+        .loginBox { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid #D4AF37; text-align: center; }
+        body { margin: 0; font-family: Arial, sans-serif; color: white; background: #1a1a1a url("/IMAGEN/Pepos.jpg") no-repeat center center fixed; background-size: cover; }
+        .contenedor { text-align: center; background: rgba(0,0,0,0.85); min-height: 100vh; padding: 20px; display: none; }
+        .titulo { color: #D4AF37; font-size: 40px; }
+        .puntos { font-size: 80px; color: #D4AF37; }
+        button { font-size: 18px; padding: 10px 20px; margin: 5px; border: none; border-radius: 8px; cursor: pointer; background: #D4AF37; color: black; font-weight: bold; }
+        #contenedorQR { background: white; padding: 10px; display: inline-block; margin-top: 10px; border-radius: 8px; min-width: 128px; min-height: 128px; }
+        .jugador { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <div class="loginBox">
-            <h2>BILLARES PEPO</h2>
-            <input type="password" id="passInput" placeholder="Contraseña">
-            <br>
-            <button onclick="validar()">Entrar</button>
+<div id="loginOverlay">
+    <div class="loginBox">
+        <h2 style="color:#D4AF37">BILLARES PEPO</h2>
+        <input type="password" id="passInput" placeholder="Contraseña" style="padding:10px; font-size:18px; border-radius:5px; border:none; margin-bottom:15px; text-align:center;">
+        <br>
+        <button onclick="validar()">Entrar</button>
+    </div>
+</div>
+
+<div id="app" class="contenedor">
+    <h1 class="titulo">BILLARES PEPO</h1>
+    
+    <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        <div class="jugador">
+            <input id="nombreA" value="Jugador 1" style="font-size:20px; text-align:center;">
+            <div class="puntos" id="puntosA">0</div>
+            <button onclick="cambiarPuntos('A', 1)">+ Punto</button>
+            <button onclick="cambiarPuntos('A', -1)">- Punto</button>
+        </div>
+        <div class="jugador">
+            <input id="nombreB" value="Jugador 2" style="font-size:20px; text-align:center;">
+            <div class="puntos" id="puntosB">0</div>
+            <button onclick="cambiarPuntos('B', 1)">+ Punto</button>
+            <button onclick="cambiarPuntos('B', -1)">- Punto</button>
         </div>
     </div>
 
-    <div id="app" class="contenedor">
-        <h1 class="titulo">BILLARES PEPO</h1>
-        <h2>MESA <input id="mesaInput" class="mesaEditable"></h2>
+    <div style="margin-top:20px;">
+        Objetivo: <input id="objetivo" type="number" value="40" style="width:50px;">
+        <button onclick="resetear()">Reiniciar</button>
+    </div>
 
-        <div class="marcador">
-            <div class="jugador">
-                <input id="nombreA" value="Jugador 1">
-                <div class="puntos" id="puntosA">0</div>
-                <button onclick="sumarA()">+ Punto</button>
-                <button onclick="restarA()">-
+    <div style="margin-top:40px; border-top: 1px solid #D4AF37; padding-top: 20px;">
+        <div id="contenedorQR"></div>
+        <p style="color: #D4AF37;">Escanea para controlar desde el celular</p>
+    </div>
+</div>
+
+<script>
+    let puntosA = 0;
+    let puntosB = 0;
+
+    function validar() {
+        const pass = document.getElementById('passInput').value;
+        if(pass === 'billar2025') {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            
+            // Intentar generar QR con reintentos si la librería no ha cargado
+            intentarGenerarQR();
+        } else {
+            alert("Contraseña incorrecta");
+        }
+    }
+
+    function intentarGenerarQR() {
+        if (typeof QRCode !== "undefined") {
+            generarQR();
+        } else {
+            console.log("Esperando a la librería QR...");
+            setTimeout(intentarGenerarQR, 500); // Reintenta cada medio segundo
+        }
+    }
+
+    function generarQR() {
+        const contenedor = document.getElementById("contenedorQR");
+        contenedor.innerHTML = ""; // Limpiar
+        
+        // Construir URL limpia para el remoto
+        const urlRemota = window.location.href.split('?')[0] + "?modo=remoto";
+        
+        new QRCode(contenedor, {
+            text: urlRemota,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    }
+
+    function cambiarPuntos(jugador, valor) {
+        if(jugador === 'A') {
+            puntosA = Math.max(0, puntosA + valor);
+            document.getElementById("puntosA").textContent = puntosA;
+        } else {
+            puntosB = Math.max(0, puntosB + valor);
+            document.getElementById("puntosB").textContent = puntosB;
+        }
+        verificarGanador();
+    }
+
+    function verificarGanador() {
+        const obj = parseInt(document.getElementById("objetivo").value);
+        if(puntosA >= obj) alert("¡Ganó " + document.getElementById("nombreA").value + "!");
+        if(puntosB >= obj) alert("¡Ganó " + document.getElementById("nombreB").value + "!");
+    }
+
+    function resetear() {
+        puntosA = 0; puntosB = 0;
+        document.getElementById("puntosA").textContent = 0;
+        document.getElementById("puntosB").textContent = 0;
+    }
+
+    // Lógica para modo remoto
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('modo') === 'remoto') {
+        document.write('<body style="background:#000; color:gold; text-align:center; padding:50px; font-family:sans-serif;">');
+        document.write('<h1>CONTROL PEPO</h1>');
+        document.write('<button style="width:100%; height:80px; margin-bottom:20px; font-size:30px;" onclick="window.opener.cambiarPuntos(\'A\', 1)">+ PUNTO J1</button>');
+        document.write('<button style="width:100%; height:80px; font-size:30px;" onclick="window.opener.cambiarPuntos(\'B\', 1)">+ PUNTO J2</button>');
+        document.write('</body>');
+    }
+</script>
+
+</body>
+</html>
