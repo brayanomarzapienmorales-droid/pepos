@@ -64,8 +64,7 @@ body {
     font-family: 'Poppins', sans-serif; width: 100%; outline: none;
 }
 
-/* === CORRECCIÓN VISUAL === */
-/* Se añadió min-height para que el espacio nunca desaparezca aunque no haya número */
+/* Espacio asegurado para los puntos */
 .puntos {
     font-size: 12vh; color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
     margin: 1vh 0; display: inline-block; line-height: 1; min-height: 12vh; min-width: 10vw; text-align: center;
@@ -173,7 +172,7 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
         <div class="bottom-box glass-effect">
             <h3>📱 Remoto</h3>
             <div id="contenedorQR"></div>
-            <p style="font-size: 1.2vh; opacity: 0.8; text-align: center; margin: 5px 0 0 0;">Escanea para controlar esta mesa</p>
+            <p style="font-size: 1.2vh; opacity: 0.8; text-align: center; margin: 5px 0 0 0;">Escanea para controlar</p>
         </div>
 
         <div class="bottom-box glass-effect">
@@ -204,9 +203,15 @@ const db = firebase.database();
 // VARIABLES MULTIMESA
 let mesaActual = "1";
 let dbRefMesa = null; 
-
 let puntosA = 0, puntosB = 0;
 let ranking = {}, estadisticas = {};
+
+// === FUNCIÓN ESCUDO ANTI-FANTASMAS (NUEVO) ===
+// Transforma cualquier error, texto o vacío en un 0 estricto
+function aNumero(valor) {
+    let num = Number(valor);
+    return isNaN(num) ? 0 : num;
+}
 
 // TIMER
 let timerInterval; let totalSeconds = 0;
@@ -220,7 +225,7 @@ function updateTimerDisplay() {
 }
 
 // ==========================================
-// INICIALIZACIÓN Y LÓGICA DE RUTEO
+// INICIALIZACIÓN
 // ==========================================
 const urlParams = new URLSearchParams(window.location.search);
 const isRemoto = urlParams.get('modo') === 'remoto';
@@ -269,10 +274,9 @@ function cambiarMesa() {
     dbRefMesa.on('value', (snapshot) => {
         const data = snapshot.val() || {};
         
-        // === CORRECCIÓN LÓGICA: ESCUDO ANTI "NaN" ===
-        // Obliga a que los puntos sean números, si están en blanco los pone en 0.
-        const nuevoPA = parseInt(data.pA) || 0;
-        const nuevoPB = parseInt(data.pB) || 0;
+        // === APLICACIÓN DEL ESCUDO ===
+        const nuevoPA = aNumero(data.pA);
+        const nuevoPB = aNumero(data.pB);
         
         if(nuevoPA !== puntosA) animarNumero("puntosA");
         if(nuevoPB !== puntosB) animarNumero("puntosB");
@@ -297,11 +301,12 @@ function cambiarMesa() {
 function enviarEstado() {
     if(!dbRefMesa) return;
     dbRefMesa.set({
-        pA: parseInt(puntosA) || 0, 
-        pB: parseInt(puntosB) || 0,
+        // === ESCUDO AL ENVIAR ===
+        pA: aNumero(puntosA), 
+        pB: aNumero(puntosB),
         nA: document.getElementById('nombreA').value,
         nB: document.getElementById('nombreB').value,
-        obj: parseInt(document.getElementById('objetivo').value) || 40
+        obj: aNumero(document.getElementById('objetivo').value) || 40
     });
 }
 
@@ -321,7 +326,7 @@ function sumarB() { puntosB++; enviarEstado(); }
 function restarB() { if(puntosB>0) puntosB--; enviarEstado(); }
 
 function verificar() {
-    let obj = parseInt(document.getElementById("objetivo").value);
+    let obj = aNumero(document.getElementById("objetivo").value) || 40;
     if(puntosA >= obj) registrarVictoria(document.getElementById('nombreA').value, document.getElementById('nombreB').value, puntosA, puntosB);
     else if(puntosB >= obj) registrarVictoria(document.getElementById('nombreB').value, document.getElementById('nombreA').value, puntosB, puntosA);
 }
@@ -402,10 +407,10 @@ function iniciarControlRemoto(mesaControlada) {
         if(window.navigator.vibrate) window.navigator.vibrate(50);
         db.ref('mesas/mesa_' + mesaControlada).once('value', s => {
             const d = s.val() || {};
-            // === CORRECCIÓN LÓGICA EN EL MANDO ===
-            // También se asegura de que sea un número antes de intentar sumarle
-            const currentA = parseInt(d.pA) || 0;
-            const currentB = parseInt(d.pB) || 0;
+            
+            // === ESCUDO EN EL CELULAR TAMBIÉN ===
+            const currentA = aNumero(d.pA);
+            const currentB = aNumero(d.pB);
 
             db.ref('mesas/mesa_' + mesaControlada).update({ 
                 pA: Math.max(0, currentA + sumaA), 
