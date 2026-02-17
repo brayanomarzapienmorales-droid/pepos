@@ -3,21 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billares Pepo - Marcador</title>
+    <title>Billares Pepo - Final</title>
     
-    <script id="qrScript" src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
     <style>
-        /* Mantenemos tus estilos */
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a2e1a; display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
-        .loginBox { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid #D4AF37; text-align: center; }
-        body { margin: 0; font-family: Arial, sans-serif; color: white; background: #1a1a1a url("/IMAGEN/Pepos.jpg") no-repeat center center fixed; background-size: cover; }
-        .contenedor { text-align: center; background: rgba(0,0,0,0.85); min-height: 100vh; padding: 20px; display: none; }
-        .titulo { color: #D4AF37; font-size: 40px; }
-        .puntos { font-size: 80px; color: #D4AF37; }
-        button { font-size: 18px; padding: 10px 20px; margin: 5px; border: none; border-radius: 8px; cursor: pointer; background: #D4AF37; color: black; font-weight: bold; }
-        #contenedorQR { background: white; padding: 10px; display: inline-block; margin-top: 10px; border-radius: 8px; min-width: 128px; min-height: 128px; }
-        .jugador { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px; }
+        body { margin: 0; font-family: Arial, sans-serif; color: white; background: #1a1a1a; text-align: center; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a2e1a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .loginBox { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid #D4AF37; }
+        .contenedor { display: none; padding: 20px; }
+        .puntos { font-size: 80px; color: #D4AF37; margin: 10px; }
+        button { font-size: 18px; padding: 10px 20px; margin: 5px; border-radius: 8px; cursor: pointer; background: #D4AF37; font-weight: bold; }
+        
+        /* Contenedor del QR */
+        #qrCanvas { 
+            background: white; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-top: 20px;
+            display: none; /* Se muestra solo si se genera */
+        }
+        .error-msg { color: #ff4d4d; font-size: 14px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -25,116 +31,93 @@
 <div id="loginOverlay">
     <div class="loginBox">
         <h2 style="color:#D4AF37">BILLARES PEPO</h2>
-        <input type="password" id="passInput" placeholder="Contraseña" style="padding:10px; font-size:18px; border-radius:5px; border:none; margin-bottom:15px; text-align:center;">
-        <br>
+        <input type="password" id="passInput" placeholder="Contraseña" style="padding:10px; font-size:18px; text-align:center;">
+        <br><br>
         <button onclick="validar()">Entrar</button>
     </div>
 </div>
 
 <div id="app" class="contenedor">
-    <h1 class="titulo">BILLARES PEPO</h1>
+    <h1 style="color:#D4AF37">BILLARES PEPO</h1>
     
-    <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-        <div class="jugador">
-            <input id="nombreA" value="Jugador 1" style="font-size:20px; text-align:center;">
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <div>
             <div class="puntos" id="puntosA">0</div>
-            <button onclick="cambiarPuntos('A', 1)">+ Punto</button>
-            <button onclick="cambiarPuntos('A', -1)">- Punto</button>
+            <button onclick="cambiar(1,0)">+ J1</button>
         </div>
-        <div class="jugador">
-            <input id="nombreB" value="Jugador 2" style="font-size:20px; text-align:center;">
+        <div>
             <div class="puntos" id="puntosB">0</div>
-            <button onclick="cambiarPuntos('B', 1)">+ Punto</button>
-            <button onclick="cambiarPuntos('B', -1)">- Punto</button>
+            <button onclick="cambiar(0,1)">+ J2</button>
         </div>
     </div>
 
-    <div style="margin-top:20px;">
-        Objetivo: <input id="objetivo" type="number" value="40" style="width:50px;">
-        <button onclick="resetear()">Reiniciar</button>
-    </div>
-
-    <div style="margin-top:40px; border-top: 1px solid #D4AF37; padding-top: 20px;">
-        <div id="contenedorQR"></div>
-        <p style="color: #D4AF37;">Escanea para controlar desde el celular</p>
+    <div style="margin-top:40px;">
+        <canvas id="qrCanvas"></canvas>
+        <div id="errorQR" class="error-msg">Error: No se pudo cargar la librería del QR.</div>
+        <p id="instruccionQR" style="color: #D4AF37; display:none;">Escanea para control remoto</p>
     </div>
 </div>
 
 <script>
-    let puntosA = 0;
-    let puntosB = 0;
+    let pA = 0; let pB = 0;
 
     function validar() {
-        const pass = document.getElementById('passInput').value;
-        if(pass === 'billar2025') {
+        if(document.getElementById('passInput').value === 'billar2025') {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            
-            // Intentar generar QR con reintentos si la librería no ha cargado
-            intentarGenerarQR();
-        } else {
-            alert("Contraseña incorrecta");
-        }
-    }
-
-    function intentarGenerarQR() {
-        if (typeof QRCode !== "undefined") {
             generarQR();
         } else {
-            console.log("Esperando a la librería QR...");
-            setTimeout(intentarGenerarQR, 500); // Reintenta cada medio segundo
+            alert("Mal password");
         }
     }
 
     function generarQR() {
-        const contenedor = document.getElementById("contenedorQR");
-        contenedor.innerHTML = ""; // Limpiar
-        
-        // Construir URL limpia para el remoto
-        const urlRemota = window.location.href.split('?')[0] + "?modo=remoto";
-        
-        new QRCode(contenedor, {
-            text: urlRemota,
-            width: 128,
-            height: 128,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-    }
+        try {
+            const urlRemota = window.location.href.split('?')[0] + "?modo=remoto";
+            
+            // Inicializamos QRious
+            const qr = new QRious({
+                element: document.getElementById('qrCanvas'),
+                value: urlRemota,
+                size: 150,
+                level: 'H'
+            });
 
-    function cambiarPuntos(jugador, valor) {
-        if(jugador === 'A') {
-            puntosA = Math.max(0, puntosA + valor);
-            document.getElementById("puntosA").textContent = puntosA;
-        } else {
-            puntosB = Math.max(0, puntosB + valor);
-            document.getElementById("puntosB").textContent = puntosB;
+            document.getElementById('qrCanvas').style.display = 'inline-block';
+            document.getElementById('instruccionQR').style.display = 'block';
+        } catch (e) {
+            console.error(e);
+            document.getElementById('errorQR').style.display = 'block';
         }
-        verificarGanador();
     }
 
-    function verificarGanador() {
-        const obj = parseInt(document.getElementById("objetivo").value);
-        if(puntosA >= obj) alert("¡Ganó " + document.getElementById("nombreA").value + "!");
-        if(puntosB >= obj) alert("¡Ganó " + document.getElementById("nombreB").value + "!");
+    function cambiar(a, b) {
+        pA += a; pB += b;
+        document.getElementById("puntosA").textContent = pA;
+        document.getElementById("puntosB").textContent = pB;
     }
 
-    function resetear() {
-        puntosA = 0; puntosB = 0;
-        document.getElementById("puntosA").textContent = 0;
-        document.getElementById("puntosB").textContent = 0;
+    // Modo Remoto
+    if(window.location.search.includes('modo=remoto')) {
+        document.body.innerHTML = `
+            <div style="padding:50px;">
+                <h1>REMOTO PEPO</h1>
+                <button onclick="enviar('A')" style="width:100%; height:100px; font-size:30px; margin-bottom:20px;">+ PUNTO J1</button>
+                <button onclick="enviar('B')" style="width:100%; height:100px; font-size:30px;">+ PUNTO J2</button>
+            </div>
+        `;
+        window.enviar = (j) => {
+            localStorage.setItem('cmd', j + Math.random());
+        };
     }
 
-    // Lógica para modo remoto
-    const params = new URLSearchParams(window.location.search);
-    if(params.get('modo') === 'remoto') {
-        document.write('<body style="background:#000; color:gold; text-align:center; padding:50px; font-family:sans-serif;">');
-        document.write('<h1>CONTROL PEPO</h1>');
-        document.write('<button style="width:100%; height:80px; margin-bottom:20px; font-size:30px;" onclick="window.opener.cambiarPuntos(\'A\', 1)">+ PUNTO J1</button>');
-        document.write('<button style="width:100%; height:80px; font-size:30px;" onclick="window.opener.cambiarPuntos(\'B\', 1)">+ PUNTO J2</button>');
-        document.write('</body>');
-    }
+    // Escuchar el remoto
+    window.addEventListener('storage', (e) => {
+        if(e.key === 'cmd') {
+            if(e.newValue.startsWith('A')) cambiar(1,0);
+            if(e.newValue.startsWith('B')) cambiar(0,1);
+        }
+    });
 </script>
 
 </body>
