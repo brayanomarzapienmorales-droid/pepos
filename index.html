@@ -20,6 +20,7 @@ body {
     padding: 0;
     font-family: 'Poppins', sans-serif;
     color: white;
+    /* IMPORTANTE: Usa ./ para GitHub Pages */
     background-image: url("./IMAGEN/Pepos.jpg"); 
     background-size: cover;
     background-position: center;
@@ -60,23 +61,36 @@ body {
     flex-direction: column;
     justify-content: space-between;
     height: 100vh; 
-    padding: 1.5vh 1.5vw; 
+    padding: 1vh 1.5vw; /* Reduje un poco el padding vertical */
     gap: 1vh;
 }
 
-/* CABECERA */
-.header-box { padding: 1vh; text-align: center; }
-.titulo { color: #FFD700; font-size: 4vh; font-weight: 800; text-shadow: 0 3px 10px rgba(0,0,0,0.8); margin: 0; }
+/* CABECERA Y TIMER */
+.header-box { padding: 1vh; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.titulo { color: #FFD700; font-size: 3.5vh; font-weight: 800; text-shadow: 0 3px 10px rgba(0,0,0,0.8); margin: 0; }
+.mesa-container { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
 .mesaEditable {
     font-size: 2.5vh; color: #fff; background: transparent; border: none;
     border-bottom: 2px dashed #D4AF37; text-align: center; width: 60px;
     outline: none; font-family: 'Poppins', sans-serif; font-weight: 600;
 }
 
-/* ZONA MARCADOR (Toma la mayor parte del espacio) */
+/* ESTILOS DEL NUEVO TIMER */
+#timer-display {
+    font-size: 4vh;
+    font-weight: 800;
+    color: #FFD700;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* Efecto neón */
+    margin-top: 0.5vh;
+    font-variant-numeric: tabular-nums; /* Evita que los números se muevan */
+    letter-spacing: 2px;
+}
+
+/* ZONA MARCADOR */
 .marcador {
-    flex: 1; /* Se estira para ocupar el centro */
+    flex: 1;
     display: flex; justify-content: center; align-items: center; gap: 3vw;
+    max-height: 45vh; /* Limita la altura para que no empuje lo de abajo */
 }
 .jugador {
     padding: 2vh 2vw; min-width: 25vw;
@@ -88,7 +102,8 @@ body {
     font-family: 'Poppins', sans-serif; width: 100%; outline: none;
 }
 .puntos {
-    font-size: 15vh; color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    font-size: 12vh; /* Un poco más pequeño para dar espacio al timer */
+    color: #FFD700; font-weight: 800; text-shadow: 0 5px 15px rgba(0,0,0,0.5);
     margin: 1vh 0; display: inline-block; line-height: 1;
 }
 
@@ -111,35 +126,28 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
 
 .vs { font-size: 4vh; font-weight: 800; color: rgba(255,255,255,0.5); }
 
-/* ZONA INFERIOR (Ajustada en 4 columnas para que no ocupe a lo alto) */
+/* ZONA INFERIOR */
 .bottom-row {
     display: flex;
     justify-content: space-between;
     align-items: stretch;
     gap: 1vw;
-    height: 25vh; /* Altura máxima fija */
+    height: 22vh; /* Altura ajustada */
 }
 
 .bottom-box {
     flex: 1; 
     padding: 1.5vh 1vw; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    overflow-y: auto; /* Scroll interno solo si es necesario */
+    display: flex; flex-direction: column; align-items: center; 
+    overflow-y: auto;
 }
-/* Ocultar barra de scroll interna para mantenerlo limpio */
 .bottom-box::-webkit-scrollbar { width: 5px; }
 .bottom-box::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.5); border-radius: 5px; }
 
 .bottom-box h3 { color: #FFD700; margin: 0 0 1vh 0; font-size: 1.8vh; text-transform: uppercase; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 5px; width: 100%; text-align: center;}
-
-/* Puntos objetivo */
 .config-box input { padding: 5px; border-radius: 5px; border: none; text-align: center; font-size: 2vh; width: 60px; font-weight: bold; margin: 5px 0 10px 0;}
-
-/* QR Code */
 #contenedorQR { background: white; padding: 10px; border-radius: 10px; }
-#contenedorQR img { width: 10vh; height: 10vh; }
+#contenedorQR img { width: 8vh !important; height: 8vh !important; } /* QR más compacto */
 
 /* CELEBRACIÓN */
 .celebracion {
@@ -169,7 +177,10 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
 <div id="app" class="contenedor">
     <div class="header-box glass-effect">
         <h1 class="titulo">BILLARES PEPO</h1>
-        <h2 style="font-weight: 400; margin: 5px 0 0 0; font-size: 2vh;">MESA <input id="mesaInput" class="mesaEditable"></h2>
+        <div class="mesa-container">
+            <h2 style="font-weight: 400; margin:0; font-size: 2vh;">MESA <input id="mesaInput" class="mesaEditable"></h2>
+        </div>
+        <div id="timer-display">00:00:00</div>
     </div>
 
     <div class="marcador">
@@ -210,12 +221,12 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
 
         <div class="bottom-box glass-effect">
             <h3>🏆 Top Ranking</h3>
-            <div id="ranking" style="text-align: left; width: 100%; font-size: 1.6vh; line-height: 1.6;"></div>
+            <div id="ranking" style="text-align: left; width: 100%; font-size: 1.5vh; line-height: 1.5;"></div>
         </div>
 
         <div class="bottom-box glass-effect">
             <h3>📈 Estadísticas</h3>
-            <div id="estadisticas" style="text-align: left; width: 100%; font-size: 1.6vh; line-height: 1.6;"></div>
+            <div id="estadisticas" style="text-align: left; width: 100%; font-size: 1.5vh; line-height: 1.5;"></div>
         </div>
     </div>
 </div>
@@ -235,12 +246,49 @@ let puntosA = 0, puntosB = 0;
 let ranking = {};
 let estadisticas = {};
 
+// --- LÓGICA DEL TIMER ---
+let timerInterval;
+let totalSeconds = 0;
+
+function startTimer() {
+    stopTimer(); // Detener si ya existe uno
+    totalSeconds = 0;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        totalSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function stopTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+}
+
+function resetTimer() {
+    stopTimer();
+    totalSeconds = 0;
+    updateTimerDisplay();
+    startTimer(); // Iniciar de nuevo automáticamente
+}
+
+function updateTimerDisplay() {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    const format = (num) => String(num).padStart(2, '0');
+    document.getElementById('timer-display').textContent = 
+        `${format(hours)}:${format(minutes)}:${format(seconds)}`;
+}
+// ------------------------
+
 // LOGIN
 function validar() {
     if(document.getElementById('passInput').value === 'billar2025') {
         document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('app').style.display = 'flex'; // Cambiado a flex para la estructura responsive
+        document.getElementById('app').style.display = 'flex';
         setTimeout(inicializarQR, 300);
+        startTimer(); // Iniciar timer al entrar
         
         db.ref('datos_jugadores').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -293,6 +341,7 @@ function verificar() {
 
 function registrarVictoria(ganador, perdedor, pG, pP) {
     if(document.getElementById("celebracion").classList.contains("activa")) return;
+    stopTimer(); // Detener timer al ganar
 
     ranking[ganador] = (ranking[ganador] || 0) + 1;
     if(!estadisticas[ganador]) estadisticas[ganador] = {jugadas:0, puntos:0};
@@ -330,12 +379,15 @@ function nuevaPartida() {
     resetear();
 }
 
-function resetear() { puntosA = 0; puntosB = 0; enviarPuntos(); }
+function resetear() { 
+    puntosA = 0; puntosB = 0; 
+    enviarPuntos();
+    resetTimer(); // Reiniciar timer
+}
 
 function inicializarQR() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('modo') === 'remoto') {
-        // INTERFAZ REMOTA TAMBIÉN SIN SCROLL
         document.body.style.backgroundImage = "none";
         document.body.style.backgroundColor = "#111";
         document.getElementById('app').style.display = 'flex';
@@ -365,7 +417,6 @@ function inicializarQR() {
     } else {
         const qrDiv = document.getElementById("contenedorQR");
         qrDiv.innerHTML = "";
-        // QR un poco más pequeño para asegurar que quepa
         new QRCode(qrDiv, { text: window.location.href.split('?')[0] + "?modo=remoto", width: 100, height: 100 });
     }
 }
@@ -386,4 +437,3 @@ function lanzarConfetiProfesional() {
 </script>
 </body>
 </html>
-
