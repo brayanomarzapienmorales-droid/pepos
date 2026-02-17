@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Marcador Billar</title>
+<title>Marcador Billar - Pepos</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-/* ===== ESTILO INICIO DE SESIÓN ===== */
+/* ===== TUS ESTILOS Y ANIMACIONES ORIGINALES ===== */
 #loginOverlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -31,7 +33,6 @@
     padding: 10px; font-size: 18px; border-radius: 5px; border: none; text-align: center; margin-bottom: 15px;
 }
 
-/* ===== ESTILO ORIGINAL ===== */
 body{
 margin:0;
 font-family:Arial, Helvetica, sans-serif;
@@ -108,13 +109,8 @@ font-weight:bold;
 }
 
 .vs{ font-size:30px; }
-
 .panel{ margin-top:20px; }
-
-.seccion{
-margin-top:20px;
-font-size:18px;
-}
+.seccion{ margin-top:20px; font-size:18px; }
 
 #contenedorQR {
     background: white;
@@ -126,10 +122,7 @@ font-size:18px;
 
 .celebracion{
 position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
+top:0; left:0; width:100%; height:100%;
 background:radial-gradient(circle, rgba(0,0,0,0.85), black);
 display:none;
 justify-content:center;
@@ -146,20 +139,9 @@ display:flex;
 animation:aparecer 0.6s ease, brillo 2s infinite alternate;
 }
 
-@keyframes aparecer{
-from{transform:scale(0.3); opacity:0}
-to{transform:scale(1); opacity:1}
-}
-
-@keyframes brillo{
-from{text-shadow:0 0 10px gold,0 0 20px gold}
-to{text-shadow:0 0 30px #FFD700,0 0 60px #FFD700}
-}
-
-@keyframes rebote{
-from{transform:translateY(0)}
-to{transform:translateY(-15px)}
-}
+@keyframes aparecer{ from{transform:scale(0.3); opacity:0} to{transform:scale(1); opacity:1} }
+@keyframes brillo{ from{text-shadow:0 0 10px gold,0 0 20px gold} to{text-shadow:0 0 30px #FFD700,0 0 60px #FFD700} }
+@keyframes rebote{ from{transform:translateY(0)} to{transform:translateY(-15px)} }
 </style>
 </head>
 
@@ -175,238 +157,202 @@ to{transform:translateY(-15px)}
 </div>
 
 <div id="app" class="contenedor">
+    <h1 class="titulo">BILLARES PEPO</h1>
+    <h2>MESA <input id="mesaInput" class="mesaEditable"></h2>
 
-<h1 class="titulo">BILLARES PEPO</h1>
+    <div class="marcador">
+        <div class="jugador">
+            <input id="nombreA" value="Jugador 1">
+            <div class="puntos" id="puntosA">0</div>
+            <button onclick="sumarA()">+ Punto</button>
+            <button onclick="restarA()">- Punto</button>
+        </div>
+        <div class="vs">VS</div>
+        <div class="jugador">
+            <input id="nombreB" value="Jugador 2">
+            <div class="puntos" id="puntosB">0</div>
+            <button onclick="sumarB()">+ Punto</button>
+            <button onclick="restarB()">- Punto</button>
+        </div>
+    </div>
 
-<h2>
-MESA
-<input id="mesaInput" class="mesaEditable">
-</h2>
+    <div class="panel">
+        Objetivo: <input id="objetivo" type="number" value="40">
+        <button onclick="resetear()">Reiniciar marcador</button>
+    </div>
 
-<div class="marcador">
+    <div class="seccion">
+        <div id="contenedorQR"></div>
+        <p style="font-size: 14px; color: #D4AF37;">Escanea para controlar desde el celular</p>
+    </div>
 
-<div class="jugador">
-<input id="nombreA" value="Jugador 1">
-<div class="puntos" id="puntosA">0</div>
-<button onclick="sumarA()">+ Punto</button>
-<button onclick="restarA()">- Punto</button>
-</div>
-
-<div class="vs">VS</div>
-
-<div class="jugador">
-<input id="nombreB" value="Jugador 2">
-<div class="puntos" id="puntosB">0</div>
-<button onclick="sumarB()">+ Punto</button>
-<button onclick="restarB()">- Punto</button>
-</div>
-
-</div>
-
-<div class="panel">
-Objetivo:
-<input id="objetivo" type="number" value="40">
-<button onclick="resetear()">Reiniciar marcador</button>
-</div>
-
-<div class="seccion">
-    <div id="contenedorQR"></div>
-    <p style="font-size: 14px; color: #D4AF37;">Escanea para controlar desde el celular</p>
-</div>
-
-<div class="seccion">
-<h3>📊 Ranking</h3>
-<div id="ranking"></div>
-</div>
-
-<div class="seccion">
-<h3>📈 Estadísticas</h3>
-<div id="estadisticas"></div>
-</div>
-
-<div class="seccion">
-<h3>📜 Historial</h3>
-<div id="historial"></div>
-</div>
-
+    <div class="seccion">
+        <h3>📊 Ranking</h3>
+        <div id="ranking"></div>
+    </div>
+    <div class="seccion">
+        <h3>📈 Estadísticas</h3>
+        <div id="estadisticas"></div>
+    </div>
 </div>
 
 <div class="celebracion" id="celebracion">
-<div id="textoGanador" style="animation:rebote 0.7s infinite alternate;"></div>
-<br>
-<button onclick="nuevaPartida()">Nueva partida</button>
+    <div id="textoGanador" style="animation:rebote 0.7s infinite alternate;"></div>
+    <br>
+    <button onclick="nuevaPartida()">Nueva partida</button>
 </div>
 
 <script>
-// FUNCION DE LOGIN
+// CONFIGURACIÓN FIREBASE CON TU URL
+const firebaseConfig = { databaseURL: "https://billares-pepo-default-rtdb.firebaseio.com/" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let puntosA = 0, puntosB = 0;
+let ranking = {};
+let estadisticas = {};
+
+// LOGIN
 function validar() {
-    const pass = document.getElementById('passInput').value;
-    if(pass === 'billar2025') {
+    if(document.getElementById('passInput').value === 'billar2025') {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        setTimeout(function() {
-            inicializarQR(); 
-        }, 300);
-    } else {
-        alert("Contraseña incorrecta");
+        setTimeout(inicializarQR, 300);
+        
+        // Cargar datos históricos de Firebase al entrar
+        db.ref('datos_jugadores').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                ranking = data.ranking || {};
+                estadisticas = data.estadisticas || {};
+                renderDatos();
+            }
+        });
+
+        // Escuchar puntos en tiempo real
+        db.ref('marcador').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                puntosA = data.pA;
+                puntosB = data.pB;
+                actualizar();
+                verificar();
+            }
+        });
+    } else { alert("Contraseña incorrecta"); }
+}
+
+function enviarPuntos() {
+    db.ref('marcador').set({ pA: puntosA, pB: puntosB });
+}
+
+function actualizar() {
+    document.getElementById("puntosA").textContent = puntosA;
+    document.getElementById("puntosB").textContent = puntosB;
+}
+
+function sumarA() { puntosA++; enviarPuntos(); }
+function restarA() { if(puntosA>0) puntosA--; enviarPuntos(); }
+function sumarB() { puntosB++; enviarPuntos(); }
+function restarB() { if(puntosB>0) puntosB--; enviarPuntos(); }
+
+function verificar() {
+    let obj = parseInt(document.getElementById("objetivo").value);
+    if(puntosA >= obj) registrarVictoria(document.getElementById('nombreA').value, document.getElementById('nombreB').value, puntosA, puntosB);
+    else if(puntosB >= obj) registrarVictoria(document.getElementById('nombreB').value, document.getElementById('nombreA').value, puntosB, puntosA);
+}
+
+function registrarVictoria(ganador, perdedor, pG, pP) {
+    // Evitar registros dobles si ya se activó la celebración
+    if(document.getElementById("celebracion").classList.contains("activa")) return;
+
+    ranking[ganador] = (ranking[ganador] || 0) + 1;
+    if(!estadisticas[ganador]) estadisticas[ganador] = {jugadas:0, puntos:0};
+    if(!estadisticas[perdedor]) estadisticas[perdedor] = {jugadas:0, puntos:0};
+    
+    estadisticas[ganador].jugadas++;
+    estadisticas[ganador].puntos += pG;
+    estadisticas[perdedor].jugadas++;
+    estadisticas[perdedor].puntos += pP;
+    
+    // Guardar Ranking y Estadísticas en Firebase
+    db.ref('datos_jugadores').set({
+        ranking: ranking,
+        estadisticas: estadisticas
+    });
+    
+    document.getElementById("textoGanador").textContent = "🏆 GANADOR: " + ganador;
+    document.getElementById("celebracion").classList.add("activa");
+    lanzarConfeti();
+}
+
+function renderDatos() {
+    let r = "";
+    Object.entries(ranking).sort((a,b)=>b[1]-a[1]).forEach(([n,v],i)=> r+=`${i+1}. ${n} — ${v} vict.<br>`);
+    document.getElementById("ranking").innerHTML = r;
+    
+    let e = "";
+    for(let j in estadisticas) {
+        let s = estadisticas[j];
+        let prom = s.jugadas > 0 ? (s.puntos/s.jugadas).toFixed(1) : 0;
+        e += `${j}: Partidas ${s.jugadas} | Promedio ${prom}<br>`;
     }
+    document.getElementById("estadisticas").innerHTML = e;
 }
 
-let puntosA=0;
-let puntosB=0;
-
-const mesaInput=document.getElementById("mesaInput");
-const claveMesa="mesaNumero";
-const claveRanking="ranking";
-const claveHistorial="historial";
-const claveEstad="estadisticas";
-
-mesaInput.value=localStorage.getItem(claveMesa) || "1";
-mesaInput.addEventListener("input", ()=> localStorage.setItem(claveMesa, mesaInput.value));
-
-let ranking=JSON.parse(localStorage.getItem(claveRanking)||"{}");
-let historial=JSON.parse(localStorage.getItem(claveHistorial)||"[]");
-let estadisticas=JSON.parse(localStorage.getItem(claveEstad)||"{}");
-
-function guardarDatos(){
-localStorage.setItem(claveRanking, JSON.stringify(ranking));
-localStorage.setItem(claveHistorial, JSON.stringify(historial));
-localStorage.setItem(claveEstad, JSON.stringify(estadisticas));
+function nuevaPartida() {
+    document.getElementById("celebracion").classList.remove("activa");
+    resetear();
 }
 
-function actualizar(){
-document.getElementById("puntosA").textContent=puntosA;
-document.getElementById("puntosB").textContent=puntosB;
+function resetear() {
+    puntosA = 0; puntosB = 0;
+    enviarPuntos();
 }
 
-function sumarA(){ puntosA++; actualizar(); verificar(); }
-function restarA(){ if(puntosA>0)puntosA--; actualizar(); }
-function sumarB(){ puntosB++; actualizar(); verificar(); }
-function restarB(){ if(puntosB>0)puntosB--; actualizar(); }
-
-function verificar(){
-let objetivo=parseInt(document.getElementById("objetivo").value);
-if(puntosA>=objetivo) registrarVictoria(document.getElementById('nombreA').value,document.getElementById('nombreB').value,puntosA,puntosB);
-if(puntosB>=objetivo) registrarVictoria(document.getElementById('nombreB').value,document.getElementById('nombreA').value,puntosB,puntosA);
-}
-
-function registrarVictoria(ganador,perdedor,pG,pP){
-ranking[ganador]=(ranking[ganador]||0)+1;
-if(!estadisticas[ganador]) estadisticas[ganador]={jugadas:0,puntos:0};
-if(!estadisticas[perdedor]) estadisticas[perdedor]={jugadas:0,puntos:0};
-estadisticas[ganador].jugadas++;
-estadisticas[ganador].puntos+=pG;
-estadisticas[perdedor].jugadas++;
-estadisticas[perdedor].puntos+=pP;
-historial.unshift(`${ganador} venció a ${perdedor} (${pG}-${pP})`);
-guardarDatos();
-renderDatos();
-mostrarGanador(ganador);
-lanzarConfeti();
-}
-
-function renderDatos(){
-let r="";
-Object.entries(ranking).sort((a,b)=>b[1]-a[1])
-.forEach(([n,v],i)=> r+=`${i+1}. ${n} — ${v} victorias<br>`);
-document.getElementById("ranking").innerHTML=r;
-document.getElementById("historial").innerHTML=historial.join("<br>");
-let e="";
-for(let j in estadisticas){
-let s=estadisticas[j];
-let prom=(s.puntos/s.jugadas).toFixed(1);
-e+=`${j}: Partidas ${s.jugadas} | Promedio ${prom}<br>`;
-}
-document.getElementById("estadisticas").innerHTML=e;
-}
-
-function mostrarGanador(nombre){
-document.getElementById("textoGanador").textContent="🏆 GANADOR: "+nombre;
-document.getElementById("celebracion").classList.add("activa");
-}
-
-function nuevaPartida(){
-document.getElementById("celebracion").classList.remove("activa");
-resetear();
-}
-
-function resetear(){
-puntosA=0;
-puntosB=0;
-actualizar();
-}
-
-function lanzarConfeti(){
-for(let i=0;i<40;i++){
-let c=document.createElement("div");
-c.style.position="fixed";
-c.style.left=Math.random()*100+"%";
-c.style.top="-10px";
-c.style.width="8px";
-c.style.height="8px";
-c.style.background="gold";
-c.style.opacity=Math.random();
-c.style.zIndex="1000";
-c.style.borderRadius="50%";
-document.body.appendChild(c);
-c.animate([{transform:"translateY(0)"},{transform:"translateY(100vh)"}],{duration:1500+Math.random()*1500,easing:"linear"});
-setTimeout(()=>c.remove(),3000);
-}
-}
-
-// LÓGICA DE QR Y CONTROL REMOTO
 function inicializarQR() {
     const urlParams = new URLSearchParams(window.location.search);
-    const contenedor = document.getElementById("contenedorQR");
-    
     if (urlParams.get('modo') === 'remoto') {
         document.getElementById('app').style.display = 'block';
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('app').innerHTML = `
             <div style="padding:20px;">
-                <h1 class="titulo">CONTROL REMOTO</h1>
-                <div class="jugador" style="margin-bottom:20px;">
-                    <button onclick="enviar('sumarA')" style="width:100%; height:120px; font-size:40px; background:#D4AF37; color:black; border-radius:15px; font-weight:bold; margin-bottom:10px;">+ PUNTO J1</button>
-                    <button onclick="enviar('restarA')" style="width:100%; height:50px; background:#555; color:white; border-radius:10px;">- Punto J1</button>
-                </div>
-                <div class="jugador">
-                    <button onclick="enviar('sumarB')" style="width:100%; height:120px; font-size:40px; background:#D4AF37; color:black; border-radius:15px; font-weight:bold; margin-bottom:10px;">+ PUNTO J2</button>
-                    <button onclick="enviar('restarB')" style="width:100%; height:50px; background:#555; color:white; border-radius:10px;">- Punto J2</button>
-                </div>
+                <h1 class="titulo">CONTROL PEPO</h1>
+                <button onclick="remote(1,0)" style="width:100%; height:120px; font-size:40px; background:#D4AF37; margin-bottom:10px; border-radius:15px;">+ J1</button>
+                <button onclick="remote(0,1)" style="width:100%; height:120px; font-size:40px; background:#D4AF37; border-radius:15px;">+ J2</button>
+                <button onclick="remote(-1,0)" style="width:48%; height:60px; background:#555; color:white; margin-top:20px; border-radius:10px;">- J1</button>
+                <button onclick="remote(0,-1)" style="width:48%; height:60px; background:#555; color:white; margin-top:20px; border-radius:10px;">- J2</button>
             </div>`;
         
-        // FUNCIÓN ENVIAR CORREGIDA
-        window.enviar = (cmd) => {
-            localStorage.setItem('comando', cmd + '_' + Math.random());
+        window.remote = (a, b) => {
+            db.ref('marcador').once('value', s => {
+                const d = s.val() || {pA:0, pB:0};
+                db.ref('marcador').set({ 
+                    pA: Math.max(0, d.pA + a), 
+                    pB: Math.max(0, d.pB + b) 
+                });
+            });
         };
-
     } else {
-        contenedor.innerHTML = "";
-        const currentURL = window.location.href.split('?')[0];
-        const finalURL = currentURL + "?modo=remoto";
-
-        new QRCode(contenedor, {
-            text: finalURL,
-            width: 150, 
-            height: 150
-        });
-
-        // ESCUCHADOR CORREGIDO
-        window.addEventListener('storage', (e) => {
-            if(e.key === 'comando') {
-                const cmd = e.newValue.split('_')[0];
-                if(cmd === 'sumarA') sumarA(); 
-                if(cmd === 'restarA') restarA();
-                if(cmd === 'sumarB') sumarB(); 
-                if(cmd === 'restarB') restarB();
-            }
+        const qrDiv = document.getElementById("contenedorQR");
+        qrDiv.innerHTML = "";
+        new QRCode(qrDiv, {
+            text: window.location.href.split('?')[0] + "?modo=remoto",
+            width: 150, height: 150
         });
     }
 }
 
-renderDatos();
-actualizar();
+function lanzarConfeti(){
+    for(let i=0;i<40;i++){
+        let c=document.createElement("div");
+        c.style.position="fixed"; c.style.left=Math.random()*100+"%"; c.style.top="-10px";
+        c.style.width="8px"; c.style.height="8px"; c.style.background="gold"; c.style.borderRadius="50%";
+        document.body.appendChild(c);
+        c.animate([{transform:"translateY(0)"},{transform:"translateY(100vh)"}],{duration:2000});
+        setTimeout(()=>c.remove(),2000);
+    }
+}
 </script>
-
 </body>
 </html>
