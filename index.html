@@ -101,10 +101,18 @@ button.restar { background: rgba(255,255,255,0.1); color: white; border: 1px sol
 @keyframes reboteTexto { 0% { transform: scale(1); } 50% { transform: scale(1.1); text-shadow: 0 0 40px #FFD700; } 100% { transform: scale(1); } }
 #textoGanador { font-size: 8vh; font-weight: 800; color: #FFD700; text-align: center; text-shadow: 0 0 20px gold; animation: reboteTexto 1.5s infinite alternate ease-in-out; margin-bottom: 3vh;}
 
-/* Ajustes Remoto */
-.btn-remoto { width:100%; height:15vh; font-size:4vh; border-radius:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; line-height:1.2; }
-.btn-remoto-restar { width:100%; height:8vh; font-size:2vh; margin-top:1vh; }
-.nombre-remoto { font-size: 2vh; opacity: 0.8; font-weight: normal; }
+/* Ajustes Especiales para el Mando Remoto */
+.btn-remoto { width:100%; height:12vh; font-size:5vh; border-radius:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; line-height:1; }
+.btn-remoto-restar { width:100%; height:7vh; font-size:2vh; margin-top:1vh; }
+
+/* Nuevo campo de texto (Input) para el celular */
+.nombre-input-remoto {
+    width: 100%; font-size: 2.5vh; text-align: center; padding: 1vh;
+    background: rgba(0,0,0,0.5); color: #FFD700; border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 10px; margin-bottom: 1.5vh; font-family: 'Poppins', sans-serif; font-weight: bold;
+    outline: none; transition: border 0.3s;
+}
+.nombre-input-remoto:focus { border-color: #FFF; background: rgba(0,0,0,0.8); }
 
 </style>
 </head>
@@ -193,7 +201,7 @@ const db = firebase.database();
 
 // VARIABLES MULTIMESA
 let mesaActual = "1";
-let dbRefMesa = null; // Referencia a la mesa que estamos viendo/controlando
+let dbRefMesa = null; 
 
 let puntosA = 0, puntosB = 0;
 let ranking = {}, estadisticas = {};
@@ -217,14 +225,12 @@ const isRemoto = urlParams.get('modo') === 'remoto';
 const mesaRemotaUrl = urlParams.get('mesa') || "1";
 
 window.onload = () => {
-    // Si es un celular que escaneó el QR, saltamos el login y vamos directo al mando
     if(isRemoto) {
         document.body.style.backgroundImage = "none";
         document.body.style.backgroundColor = "#111";
         document.getElementById('loginOverlay').style.display = 'none';
         iniciarControlRemoto(mesaRemotaUrl);
     } else {
-        // Es una TV, recuperamos qué mesa era la última vez
         mesaActual = localStorage.getItem("mesaGuardada") || "1";
         document.getElementById("mesaInput").value = mesaActual;
     }
@@ -236,7 +242,7 @@ function iniciarSistema() {
         document.getElementById('app').style.display = 'flex';
         
         cargarEstadisticasGlobales();
-        cambiarMesa(); // Conecta a la base de datos de esa mesa
+        cambiarMesa(); 
         startTimer();
     } else { alert("Contraseña incorrecta"); }
 }
@@ -245,7 +251,6 @@ function iniciarSistema() {
 // LÓGICA DE TELEVISIÓN (PANTALLA PRINCIPAL)
 // ==========================================
 function cargarEstadisticasGlobales() {
-    // El ranking y estadísticas son globales para todo el lugar
     db.ref('datos_jugadores').on('value', (snapshot) => {
         const data = snapshot.val();
         if(data) { ranking = data.ranking || {}; estadisticas = data.estadisticas || {}; renderDatos(); }
@@ -253,42 +258,34 @@ function cargarEstadisticasGlobales() {
 }
 
 function cambiarMesa() {
-    // 1. Obtiene la mesa del input
     mesaActual = document.getElementById("mesaInput").value.trim() || "1";
-    localStorage.setItem("mesaGuardada", mesaActual); // Guarda en la memoria de la TV
+    localStorage.setItem("mesaGuardada", mesaActual);
     
-    // 2. Desconecta de la mesa anterior si existía
     if(dbRefMesa) dbRefMesa.off();
-    
-    // 3. Conecta al nuevo "Cuarto" de la mesa actual
     dbRefMesa = db.ref('mesas/mesa_' + mesaActual);
     
     dbRefMesa.on('value', (snapshot) => {
         const data = snapshot.val() || { pA: 0, pB: 0, nA: "Jugador 1", nB: "Jugador 2", obj: 40 };
         
-        // Efecto Pop de los números
         if(data.pA !== puntosA) animarNumero("puntosA");
         if(data.pB !== puntosB) animarNumero("puntosB");
         
         puntosA = data.pA; puntosB = data.pB;
         
-        // Actualizar nombres solo si son diferentes (para no borrar lo que estás escribiendo)
-        if(document.activeElement !== document.getElementById('nombreA')) document.getElementById('nombreA').value = data.nA;
-        if(document.activeElement !== document.getElementById('nombreB')) document.getElementById('nombreB').value = data.nB;
+        if(document.activeElement !== document.getElementById('nombreA')) document.getElementById('nombreA').value = data.nA || "Jugador 1";
+        if(document.activeElement !== document.getElementById('nombreB')) document.getElementById('nombreB').value = data.nB || "Jugador 2";
         if(document.activeElement !== document.getElementById('objetivo')) document.getElementById('objetivo').value = data.obj || 40;
         
         actualizarDOM();
         verificar();
     });
 
-    // 4. Regenerar el QR con la mesa actual
     const qrDiv = document.getElementById("contenedorQR");
     qrDiv.innerHTML = "";
     const urlRemota = window.location.href.split('?')[0] + `?modo=remoto&mesa=${encodeURIComponent(mesaActual)}`;
     new QRCode(qrDiv, { text: urlRemota, width: 100, height: 100 });
 }
 
-// Envía TODO el estado (Puntos + Nombres + Objetivo) a Firebase
 function enviarEstado() {
     if(!dbRefMesa) return;
     dbRefMesa.set({
@@ -356,7 +353,7 @@ function resetear() { puntosA = 0; puntosB = 0; enviarEstado(); resetTimer(); }
 function iniciarControlRemoto(mesaControlada) {
     document.getElementById('app').style.display = 'flex';
     
-    // UI del celular
+    // UI del celular: Ahora incluye Inputs en lugar de textos fijos
     document.getElementById('app').innerHTML = `
         <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; max-width: 500px; margin: auto; width: 100%;">
             <div class="header-box glass-effect">
@@ -365,30 +362,40 @@ function iniciarControlRemoto(mesaControlada) {
             </div>
 
             <div class="glass-effect" style="padding: 2vh; text-align: center;">
-                <button onclick="enviarMando(1,0)" class="btn-remoto">+ PUNTOS <br><span id="remotoNombreA" class="nombre-remoto">Jugador 1</span></button>
-                <button class="restar btn-remoto-restar" onclick="enviarMando(-1,0)">- Quitar Punto</button>
+                <input type="text" id="remotoNombreA" class="nombre-input-remoto" value="Jugador 1" onchange="cambiarNombreCelular('nA', this.value)" placeholder="Escribe Nombre J1">
+                <button onclick="enviarMando(1,0)" class="btn-remoto">+ PUNTO</button>
+                <button class="restar btn-remoto-restar" onclick="enviarMando(-1,0)">- Quitar</button>
             </div>
 
             <div class="glass-effect" style="padding: 2vh; text-align: center;">
-                <button onclick="enviarMando(0,1)" class="btn-remoto">+ PUNTOS <br><span id="remotoNombreB" class="nombre-remoto">Jugador 2</span></button>
-                <button class="restar btn-remoto-restar" onclick="enviarMando(0,-1)">- Quitar Punto</button>
+                <input type="text" id="remotoNombreB" class="nombre-input-remoto" value="Jugador 2" onchange="cambiarNombreCelular('nB', this.value)" placeholder="Escribe Nombre J2">
+                <button onclick="enviarMando(0,1)" class="btn-remoto">+ PUNTO</button>
+                <button class="restar btn-remoto-restar" onclick="enviarMando(0,-1)">- Quitar</button>
             </div>
         </div>`;
     
-    // Escuchar los nombres de ESA mesa para mostrarlos en los botones del celular
+    // Escuchar cambios de Firebase (por si la TV lo cambia, el cel también se actualiza)
     db.ref('mesas/mesa_' + mesaControlada).on('value', snap => {
         const data = snap.val();
         if(data) {
-            document.getElementById('remotoNombreA').textContent = data.nA || "Jugador 1";
-            document.getElementById('remotoNombreB').textContent = data.nB || "Jugador 2";
+            const inputA = document.getElementById('remotoNombreA');
+            const inputB = document.getElementById('remotoNombreB');
+            // Solo actualiza si NO estamos escribiendo en el campo en ese momento
+            if(inputA && document.activeElement !== inputA) inputA.value = data.nA || "Jugador 1";
+            if(inputB && document.activeElement !== inputB) inputB.value = data.nB || "Jugador 2";
         }
     });
 
-    // Función que usa el celular para enviar comandos
+    // Enviar cambio de nombre a la base de datos
+    window.cambiarNombreCelular = (clave, nuevoNombre) => {
+        db.ref('mesas/mesa_' + mesaControlada).update({
+            [clave]: nuevoNombre
+        });
+    };
+
+    // Botones de suma y resta
     window.enviarMando = (sumaA, sumaB) => {
-        if(window.navigator.vibrate) window.navigator.vibrate(50); // Vibra el celular al tocar
-        
-        // "update" suma los puntos sin borrar los nombres de los jugadores de la base de datos
+        if(window.navigator.vibrate) window.navigator.vibrate(50);
         db.ref('mesas/mesa_' + mesaControlada).once('value', s => {
             const d = s.val() || {pA:0, pB:0};
             db.ref('mesas/mesa_' + mesaControlada).update({ 
