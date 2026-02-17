@@ -1,123 +1,413 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billares Pepo - Final</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcador Billar</title>
 
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; color: white; background: #1a1a1a; text-align: center; }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a2e1a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .loginBox { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid #D4AF37; }
-        .contenedor { display: none; padding: 20px; }
-        .puntos { font-size: 80px; color: #D4AF37; margin: 10px; }
-        button { font-size: 18px; padding: 10px 20px; margin: 5px; border-radius: 8px; cursor: pointer; background: #D4AF37; font-weight: bold; }
-        
-        /* Contenedor del QR */
-        #qrCanvas { 
-            background: white; 
-            padding: 10px; 
-            border-radius: 8px; 
-            margin-top: 20px;
-            display: none; /* Se muestra solo si se genera */
-        }
-        .error-msg { color: #ff4d4d; font-size: 14px; margin-top: 10px; display: none; }
-    </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+/* ===== ESTILO INICIO DE SESIÓN ===== */
+#loginOverlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #0a2e1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    flex-direction: column;
+}
+.loginBox {
+    background: rgba(0,0,0,0.8);
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #D4AF37;
+    text-align: center;
+}
+.loginBox h2 { color: #D4AF37; margin-bottom: 20px; }
+.loginBox input { 
+    padding: 10px; font-size: 18px; border-radius: 5px; border: none; text-align: center; margin-bottom: 15px;
+}
+
+/* ===== TU ESTILO ORIGINAL ===== */
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+color:white;
+background-image:url("/IMAGEN/Pepos.jpg");
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+}
+
+.contenedor{
+text-align:center;
+background:rgba(0,0,0,0.75);
+min-height:100vh;
+padding:20px;
+display: none; 
+}
+
+.titulo{
+color:#D4AF37;
+font-size:40px;
+}
+
+.mesaEditable{
+font-size:28px;
+color:#FFD700;
+background:transparent;
+border:none;
+border-bottom:2px solid #D4AF37;
+text-align:center;
+width:120px;
+outline:none;
+}
+
+.marcador{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:40px;
+flex-wrap:wrap;
+margin-top:20px;
+}
+
+.jugador{
+background:rgba(0,0,0,0.6);
+padding:20px;
+border-radius:12px;
+}
+
+.jugador input{
+font-size:20px;
+text-align:center;
+padding:5px;
+border:none;
+border-radius:6px;
+margin-bottom:10px;
+}
+
+.puntos{
+font-size:80px;
+color:#D4AF37;
+}
+
+button{
+font-size:18px;
+padding:10px 20px;
+margin:5px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+background:#D4AF37;
+color:black;
+font-weight:bold;
+}
+
+.vs{ font-size:30px; }
+
+.panel{ margin-top:20px; }
+
+.seccion{
+margin-top:20px;
+font-size:18px;
+}
+
+#contenedorQR {
+    background: white;
+    padding: 10px;
+    display: inline-block;
+    margin-top: 20px;
+    border-radius: 8px;
+    min-width: 128px;
+    min-height: 128px;
+}
+
+.celebracion{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:radial-gradient(circle, rgba(0,0,0,0.85), black);
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+font-size:48px;
+color:#FFD700;
+z-index:999;
+text-shadow:0 0 20px gold;
+}
+
+.celebracion.activa{
+display:flex;
+animation:aparecer 0.6s ease, brillo 2s infinite alternate;
+}
+
+@keyframes aparecer{
+from{transform:scale(0.3); opacity:0}
+to{transform:scale(1); opacity:1}
+}
+
+@keyframes brillo{
+from{text-shadow:0 0 10px gold,0 0 20px gold}
+to{text-shadow:0 0 30px #FFD700,0 0 60px #FFD700}
+}
+
+@keyframes rebote{
+from{transform:translateY(0)}
+to{transform:translateY(-15px)}
+}
+</style>
 </head>
+
 <body>
 
 <div id="loginOverlay">
     <div class="loginBox">
-        <h2 style="color:#D4AF37">BILLARES PEPO</h2>
-        <input type="password" id="passInput" placeholder="Contraseña" style="padding:10px; font-size:18px; text-align:center;">
-        <br><br>
+        <h2>BILLARES PEPO</h2>
+        <input type="password" id="passInput" placeholder="Contraseña">
+        <br>
         <button onclick="validar()">Entrar</button>
     </div>
 </div>
 
 <div id="app" class="contenedor">
-    <h1 style="color:#D4AF37">BILLARES PEPO</h1>
-    
-    <div style="display: flex; justify-content: center; gap: 20px;">
-        <div>
-            <div class="puntos" id="puntosA">0</div>
-            <button onclick="cambiar(1,0)">+ J1</button>
-        </div>
-        <div>
-            <div class="puntos" id="puntosB">0</div>
-            <button onclick="cambiar(0,1)">+ J2</button>
-        </div>
-    </div>
 
-    <div style="margin-top:40px;">
-        <canvas id="qrCanvas"></canvas>
-        <div id="errorQR" class="error-msg">Error: No se pudo cargar la librería del QR.</div>
-        <p id="instruccionQR" style="color: #D4AF37; display:none;">Escanea para control remoto</p>
-    </div>
+<h1 class="titulo">BILLARES PEPO</h1>
+
+<h2>
+MESA
+<input id="mesaInput" class="mesaEditable">
+</h2>
+
+<div class="marcador">
+
+<div class="jugador">
+<input id="nombreA" value="Jugador 1">
+<div class="puntos" id="puntosA">0</div>
+<button onclick="sumarA()">+ Punto</button>
+<button onclick="restarA()">- Punto</button>
+</div>
+
+<div class="vs">VS</div>
+
+<div class="jugador">
+<input id="nombreB" value="Jugador 2">
+<div class="puntos" id="puntosB">0</div>
+<button onclick="sumarB()">+ Punto</button>
+<button onclick="restarB()">- Punto</button>
+</div>
+
+</div>
+
+<div class="panel">
+Objetivo:
+<input id="objetivo" type="number" value="40">
+<button onclick="resetear()">Reiniciar marcador</button>
+</div>
+
+<div class="seccion">
+    <div id="contenedorQR"></div>
+    <p style="font-size: 14px; color: #D4AF37;">Escanea para controlar desde el celular</p>
+</div>
+
+<div class="seccion">
+<h3>📊 Ranking</h3>
+<div id="ranking"></div>
+</div>
+
+<div class="seccion">
+<h3>📈 Estadísticas</h3>
+<div id="estadisticas"></div>
+</div>
+
+<div class="seccion">
+<h3>📜 Historial</h3>
+<div id="historial"></div>
+</div>
+
+</div>
+
+<div class="celebracion" id="celebracion">
+<div id="textoGanador" style="animation:rebote 0.7s infinite alternate;"></div>
+<br>
+<button onclick="nuevaPartida()">Nueva partida</button>
 </div>
 
 <script>
-    let pA = 0; let pB = 0;
-
-    function validar() {
-        if(document.getElementById('passInput').value === 'billar2025') {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            generarQR();
-        } else {
-            alert("Mal password");
-        }
+// FUNCION DE LOGIN
+function validar() {
+    const pass = document.getElementById('passInput').value;
+    if(pass === 'billar2025') {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        
+        // CORRECCIÓN: Pequeña pausa para que el div exista antes de dibujar el QR
+        setTimeout(function() {
+            inicializarQR(); 
+        }, 300);
+        
+    } else {
+        alert("Contraseña incorrecta");
     }
+}
 
-    function generarQR() {
-        try {
-            const urlRemota = window.location.href.split('?')[0] + "?modo=remoto";
-            
-            // Inicializamos QRious
-            const qr = new QRious({
-                element: document.getElementById('qrCanvas'),
-                value: urlRemota,
-                size: 150,
-                level: 'H'
-            });
+let puntosA=0;
+let puntosB=0;
 
-            document.getElementById('qrCanvas').style.display = 'inline-block';
-            document.getElementById('instruccionQR').style.display = 'block';
-        } catch (e) {
-            console.error(e);
-            document.getElementById('errorQR').style.display = 'block';
-        }
+const mesaInput=document.getElementById("mesaInput");
+const claveMesa="mesaNumero";
+const claveRanking="ranking";
+const claveHistorial="historial";
+const claveEstad="estadisticas";
+
+mesaInput.value=localStorage.getItem(claveMesa) || "1";
+mesaInput.addEventListener("input", ()=> localStorage.setItem(claveMesa, mesaInput.value));
+
+let ranking=JSON.parse(localStorage.getItem(claveRanking)||"{}");
+let historial=JSON.parse(localStorage.getItem(claveHistorial)||"[]");
+let estadisticas=JSON.parse(localStorage.getItem(claveEstad)||"{}");
+
+function guardarDatos(){
+localStorage.setItem(claveRanking, JSON.stringify(ranking));
+localStorage.setItem(claveHistorial, JSON.stringify(historial));
+localStorage.setItem(claveEstad, JSON.stringify(estadisticas));
+}
+
+function actualizar(){
+document.getElementById("puntosA").textContent=puntosA;
+document.getElementById("puntosB").textContent=puntosB;
+}
+
+function sumarA(){ puntosA++; actualizar(); verificar(); }
+function restarA(){ if(puntosA>0)puntosA--; actualizar(); }
+function sumarB(){ puntosB++; actualizar(); verificar(); }
+function restarB(){ if(puntosB>0)puntosB--; actualizar(); }
+
+function verificar(){
+let objetivo=parseInt(document.getElementById("objetivo").value);
+if(puntosA>=objetivo) registrarVictoria(document.getElementById('nombreA').value,document.getElementById('nombreB').value,puntosA,puntosB);
+if(puntosB>=objetivo) registrarVictoria(document.getElementById('nombreB').value,document.getElementById('nombreA').value,puntosB,puntosA);
+}
+
+function registrarVictoria(ganador,perdedor,pG,pP){
+ranking[ganador]=(ranking[ganador]||0)+1;
+if(!estadisticas[ganador]) estadisticas[ganador]={jugadas:0,puntos:0};
+if(!estadisticas[perdedor]) estadisticas[perdedor]={jugadas:0,puntos:0};
+estadisticas[ganador].jugadas++;
+estadisticas[ganador].puntos+=pG;
+estadisticas[perdedor].jugadas++;
+estadisticas[perdedor].puntos+=pP;
+historial.unshift(`${ganador} venció a ${perdedor} (${pG}-${pP})`);
+guardarDatos();
+renderDatos();
+mostrarGanador(ganador);
+lanzarConfeti();
+}
+
+function renderDatos(){
+let r="";
+Object.entries(ranking).sort((a,b)=>b[1]-a[1])
+.forEach(([n,v],i)=> r+=`${i+1}. ${n} — ${v} victorias<br>`);
+document.getElementById("ranking").innerHTML=r;
+document.getElementById("historial").innerHTML=historial.join("<br>");
+let e="";
+for(let j in estadisticas){
+let s=estadisticas[j];
+let prom=(s.puntos/s.jugadas).toFixed(1);
+e+=`${j}: Partidas ${s.jugadas} | Promedio ${prom}<br>`;
+}
+document.getElementById("estadisticas").innerHTML=e;
+}
+
+function mostrarGanador(nombre){
+document.getElementById("textoGanador").textContent="🏆 GANADOR: "+nombre;
+document.getElementById("celebracion").classList.add("activa");
+}
+
+function nuevaPartida(){
+document.getElementById("celebracion").classList.remove("activa");
+resetear();
+}
+
+function resetear(){
+puntosA=0;
+puntosB=0;
+actualizar();
+}
+
+function lanzarConfeti(){
+for(let i=0;i<40;i++){
+let c=document.createElement("div");
+c.style.position="fixed";
+c.style.left=Math.random()*100+"%";
+c.style.top="-10px";
+c.style.width="8px";
+c.style.height="8px";
+c.style.background="gold";
+c.style.opacity=Math.random();
+c.style.zIndex="1000";
+c.style.borderRadius="50%";
+document.body.appendChild(c);
+c.animate([{transform:"translateY(0)"},{transform:"translateY(100vh)"}],{duration:1500+Math.random()*1500,easing:"linear"});
+setTimeout(()=>c.remove(),3000);
+}
+}
+
+// LÓGICA DE QR Y CONTROL REMOTO
+function inicializarQR() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const contenedor = document.getElementById("contenedorQR");
+    
+    if (urlParams.get('modo') === 'remoto') {
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('app').innerHTML = `
+            <div style="padding:20px;">
+                <h1 class="titulo">CONTROL REMOTO</h1>
+                <div class="jugador" style="margin-bottom:20px;">
+                    <h3>${document.getElementById('nombreA').value}</h3>
+                    <button onclick="enviar('sumarA')" style="width:100%; height:100px; font-size:40px;">+</button>
+                    <button onclick="enviar('restarA')" style="width:100%; margin-top:10px;">-</button>
+                </div>
+                <div class="jugador">
+                    <h3>${document.getElementById('nombreB').value}</h3>
+                    <button onclick="enviar('sumarB')" style="width:100%; height:100px; font-size:40px;">+</button>
+                    <button onclick="enviar('restarB')" style="width:100%; margin-top:10px;">-</button>
+                </div>
+            </div>`;
+        window.enviar = (cmd) => localStorage.setItem('comando', cmd + '_' + Math.random());
+    } else {
+        // CORRECCIÓN: Limpiar el contenedor antes de generar un nuevo QR
+        contenedor.innerHTML = "";
+        
+        // CORRECCIÓN: Asegurar que la URL sea absoluta
+        const currentURL = window.location.href.split('?')[0];
+        const finalURL = currentURL + "?modo=remoto";
+
+        new QRCode(contenedor, {
+            text: finalURL,
+            width: 128, 
+            height: 128
+        });
+
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'comando') {
+                const cmd = e.newValue.split('_')[0];
+                if(cmd === 'sumarA') sumarA(); if(cmd === 'restarA') restarA();
+                if(cmd === 'sumarB') sumarB(); if(cmd === 'restarB') restarB();
+            }
+        });
     }
+}
 
-    function cambiar(a, b) {
-        pA += a; pB += b;
-        document.getElementById("puntosA").textContent = pA;
-        document.getElementById("puntosB").textContent = pB;
-    }
-
-    // Modo Remoto
-    if(window.location.search.includes('modo=remoto')) {
-        document.body.innerHTML = `
-            <div style="padding:50px;">
-                <h1>REMOTO PEPO</h1>
-                <button onclick="enviar('A')" style="width:100%; height:100px; font-size:30px; margin-bottom:20px;">+ PUNTO J1</button>
-                <button onclick="enviar('B')" style="width:100%; height:100px; font-size:30px;">+ PUNTO J2</button>
-            </div>
-        `;
-        window.enviar = (j) => {
-            localStorage.setItem('cmd', j + Math.random());
-        };
-    }
-
-    // Escuchar el remoto
-    window.addEventListener('storage', (e) => {
-        if(e.key === 'cmd') {
-            if(e.newValue.startsWith('A')) cambiar(1,0);
-            if(e.newValue.startsWith('B')) cambiar(0,1);
-        }
-    });
+renderDatos();
+actualizar();
 </script>
 
 </body>
