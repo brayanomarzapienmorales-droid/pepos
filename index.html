@@ -202,10 +202,12 @@ const db = firebase.database();
 
 
 // -------------------------------------------------------------
-// 🔒 VIGÍA INHACKEABLE (TIME-BOMB CON HORA SATELITAL DE GOOGLE)
+// 🔒 VIGÍA INHACKEABLE (HORA SATELITAL DE GOOGLE + ZONA UTC)
 // -------------------------------------------------------------
-// Cambia esta fecha por la fecha de corte real (AÑO-MES-DIA)
-const FECHA_CADUCIDAD = new Date("2026-03-01T00:00:00").getTime(); 
+// Formato: "AÑO-MES-DIAThora:minuto:segundoZ"
+// IMPORTANTE: La "Z" al final significa "Hora Universal" (UTC). 
+// Con la "Z", el código ignora totalmente en qué país, mes o zona horaria esté la computadora.
+const FECHA_CADUCIDAD = new Date("2026-03-01T23:59:59Z").getTime(); 
 
 function ejecutarBloqueoAbsoluto() {
     document.body.innerHTML = `
@@ -216,18 +218,19 @@ function ejecutarBloqueoAbsoluto() {
                 <p style="margin:0; color:#aaa; font-size:2vh;">Por favor, contacta al desarrollador de software para renovar o adquirir la licencia vitalicia.</p>
             </div>
         </div>`;
-    if(typeof db !== 'undefined') db.goOffline(); // Desconecta la base de datos
+    if(typeof db !== 'undefined') db.goOffline(); // Desconecta la base de datos de inmediato
 }
 
-// 1. Comprobación Rápida (Reloj de la PC)
-if (new Date().getTime() > FECHA_CADUCIDAD) {
+// 1. Revisión rápida (por si acaso)
+if (Date.now() > FECHA_CADUCIDAD) {
     ejecutarBloqueoAbsoluto();
 }
 
-// 2. Comprobación Satelital Inhackeable (Si engañaron a la PC, Firebase los descubre en milisegundos)
+// 2. Revisión Satelital Inhackeable
+// Analiza la diferencia entre la hora falsa de la laptop y la hora atómica real.
 db.ref(".info/serverTimeOffset").on("value", (snap) => {
     const diferenciaSatelite = snap.val() || 0;
-    const horaMundialExacta = new Date().getTime() + diferenciaSatelite; 
+    const horaMundialExacta = Date.now() + diferenciaSatelite; 
     
     if (horaMundialExacta > FECHA_CADUCIDAD) {
         ejecutarBloqueoAbsoluto();
@@ -267,7 +270,7 @@ const isRemoto = urlParams.get('modo') === 'remoto';
 const mesaRemotaUrl = urlParams.get('mesa') || "1";
 
 window.onload = () => {
-    // Si la función de bloqueo ya limpió el body, detenemos la carga.
+    // Si la función de bloqueo ya destruyó el body, detenemos el código.
     if(document.body.innerHTML.includes("EXPIRADA")) return;
 
     if(isRemoto) {
