@@ -206,8 +206,7 @@ let dbRefMesa = null;
 let puntosA = 0, puntosB = 0;
 let ranking = {}, estadisticas = {};
 
-// === FUNCIÓN ESCUDO ANTI-FANTASMAS (NUEVO) ===
-// Transforma cualquier error, texto o vacío en un 0 estricto
+// FUNCIÓN ESCUDO ANTI-FANTASMAS
 function aNumero(valor) {
     let num = Number(valor);
     return isNaN(num) ? 0 : num;
@@ -225,13 +224,35 @@ function updateTimerDisplay() {
 }
 
 // ==========================================
-// INICIALIZACIÓN
+// INICIALIZACIÓN CON SISTEMA DE PRUEBA (TRIAL)
 // ==========================================
 const urlParams = new URLSearchParams(window.location.search);
 const isRemoto = urlParams.get('modo') === 'remoto';
 const mesaRemotaUrl = urlParams.get('mesa') || "1";
 
 window.onload = () => {
+    // -------------------------------------------------------------
+    // 🔒 BLOQUEO DE PRUEBA (TIME-BOMB)
+    // -------------------------------------------------------------
+    // FORMATO: "AÑO-MES-DIA". Configurado actualmente para el 1 de Marzo del 2026.
+    // Cambia esta fecha a cuando quieras que el sistema deje de funcionar.
+    const FECHA_CADUCIDAD = new Date("2026-02-16T20:50:00"); 
+    
+    if (new Date() > FECHA_CADUCIDAD) {
+        // Pantalla de bloqueo absoluto: Borra toda la app y muestra esto
+        document.body.innerHTML = `
+            <div style="height:100vh; width:100vw; background:#111; color:#FFD700; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; font-family:'Poppins', sans-serif;">
+                <h1 style="font-size:6vh; margin-bottom:10px; color:#e74c3c;">⚠️ VERSIÓN DE PRUEBA EXPIRADA</h1>
+                <p style="color:white; font-size:2.5vh; max-width: 600px;">El periodo de demostración de este sistema de marcador inteligente ha concluido.</p>
+                <div style="margin-top:30px; padding:20px; border: 2px dashed #D4AF37; border-radius:15px; background: rgba(0,0,0,0.5);">
+                    <p style="margin:0; color:#aaa; font-size:2vh;">Por favor, contacta al desarrollador de software para renovar o adquirir la licencia vitalicia.</p>
+                </div>
+            </div>`;
+        return; // Esto "mata" la aplicación y evita que cargue Firebase o la pantalla de login
+    }
+    // -------------------------------------------------------------
+
+    // Si la fecha aún es válida, la app carga normalmente:
     if(isRemoto) {
         document.body.style.backgroundImage = "none";
         document.body.style.backgroundColor = "#111";
@@ -274,7 +295,6 @@ function cambiarMesa() {
     dbRefMesa.on('value', (snapshot) => {
         const data = snapshot.val() || {};
         
-        // === APLICACIÓN DEL ESCUDO ===
         const nuevoPA = aNumero(data.pA);
         const nuevoPB = aNumero(data.pB);
         
@@ -301,7 +321,6 @@ function cambiarMesa() {
 function enviarEstado() {
     if(!dbRefMesa) return;
     dbRefMesa.set({
-        // === ESCUDO AL ENVIAR ===
         pA: aNumero(puntosA), 
         pB: aNumero(puntosB),
         nA: document.getElementById('nombreA').value,
@@ -408,7 +427,6 @@ function iniciarControlRemoto(mesaControlada) {
         db.ref('mesas/mesa_' + mesaControlada).once('value', s => {
             const d = s.val() || {};
             
-            // === ESCUDO EN EL CELULAR TAMBIÉN ===
             const currentA = aNumero(d.pA);
             const currentB = aNumero(d.pB);
 
